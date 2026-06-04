@@ -70,6 +70,7 @@ void Order::setOrderCondition(const std::string SorderCondition) {
 }
 
 
+
 int Order::getOrderID() const {
     return orderID;
 }
@@ -95,6 +96,7 @@ void Order::removeItem(int itemId) {
             delete orderItems[i];
             orderItems.erase(orderItems.begin() + i);
             findOrderItem = true;
+            cout << "Item removed." << endl;
             break;
         }
     }

@@ -6,6 +6,7 @@
 #include "Menu.h"
 #include "MenuDAO.h"
 #include "Order.h"
+#include "OrderDAO.h"
 
 using namespace std;
 
@@ -164,6 +165,7 @@ int main() {
 
     RestaurantDAO restaurantDao(db);
     MenuDAO menuDao(db);
+    OrderDAO orderDao(db);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -181,6 +183,10 @@ int main() {
 
         if (chooseRole == -1) {
             cout << "Exiting program!" << endl;
+            for (int i = 0; i < restaurants.size(); ++i) {
+                delete restaurants[i];
+            }
+            restaurants.clear();
             return 2;
         }
 
@@ -222,8 +228,8 @@ int main() {
 
 
                 ////////////////////////////////////////////////////Choose restaurant///////////////////////////////////
-
                 cout << "Please enter restaurant ID : " << endl;
+
                 customerChoice = getValidatedInt();
 
                 if (customerChoice == 0) {
@@ -231,32 +237,33 @@ int main() {
                 }
 
                 else{
-
+                    vector<menuItems*> loadedMenu = menuDao.getMenuByRestaurantId(customerChoice);
                     Restaurant *chooseResInCustomerMenu = restaurantDao.getRestaurantById(customerChoice);
 
                     if (chooseResInCustomerMenu == nullptr){
                         cout << "Wrong Restaurant ID!" << endl;
                         cout << "Press Enter." << endl;
+                        for (int i = 0; i < loadedMenu.size(); ++i) {
+                            delete loadedMenu[i];
+                        }
+                        loadedMenu.clear();
                         cin.ignore(); cin.get();
+                        continue;
                     }
                     else{
                         clearScreen();
-                        vector<menuItems*> loadedMenu = menuDao.getMenuByRestaurantId(customerChoice);
                         chooseResInCustomerMenu->setMenu(loadedMenu);
 
                         chooseResInCustomerMenu->printMyMenu();
+                        cout << "-----------------------------------------------------------------" << endl;
                     }
 
-                    delete chooseResInCustomerMenu;
-                    cout << "Press Enter to return to the restaurants list." << endl;
-                    cin.ignore(); cin.get();
 
 
 
 
 
                     ////////////////////////////////////////////////////Order///////////////////////////////////////////
-
 
                     Order* customerOrder = new Order;
                     int orderChoice = -1 , selectOrder = -1 , orderNum = -1;
@@ -265,41 +272,60 @@ int main() {
                         cout << "Press 101 to add to order." << endl;
                         cout << "Press 102 to change number of order." << endl;
                         cout << "Press 103 to remove item from order list." << endl;
+                        cout << "Press 104 to show order list." << endl;
+
+                        cout << "Total Price: " << customerOrder->getTotalPrice() << endl;
+                        cout << "----------------------------------------------------------------" << endl;
 
                         orderChoice = getValidatedInt();
 
                         if(orderChoice == 0){
+                            if (customerOrder->getOrderItems().empty()) {
+                                cout << "Your order list is empty! Cannot complete an empty order." << endl;
+                                cin.ignore(); cin.get();
+                                continue;
+                            }
                             cout << "Order completed." << endl;
+                            customerOrder->setOrderCondition("Pending");
+                            orderDao.addOrder(*customerOrder);
                             break;
                         }
                         else if(orderChoice == 101){
                             menuItems *selectedItem = nullptr;
-                            cout << "Enter item ID and it`s quantity to add to order: " << endl;
-                            selectOrder = getValidatedInt();
-                            orderNum = getValidatedInt();
-                            vector<menuItems*> loadedMenu = menuDao.getMenuByRestaurantId(customerChoice);
 
-                            for (int i = 0; i < loadedMenu.size(); ++i) {
-                                if(loadedMenu[i]->getItemID() == selectOrder){
+                            cout << "Enter item ID to add: ";
+                            selectOrder = getValidatedInt();
+                            cout << "Enter quantity: ";
+                            orderNum = getValidatedInt();
+
+                            for (size_t i = 0; i < loadedMenu.size(); ++i) {
+                                if (loadedMenu[i] != nullptr && loadedMenu[i]->getItemID() == selectOrder) {
                                     selectedItem = loadedMenu[i];
                                     break;
                                 }
                             }
 
                             if(selectedItem == nullptr){
-                                cout << "Invalid item ID!" << endl;
+                                cout << "Error: Item ID [" << selectOrder << "] not found in this menu!" << endl;
+                                cout << "Press Enter to continue.";
+                                cin.ignore(10000, '\n'); cin.get();
                             }
                             else {
-                                customerOrder->addItem(selectedItem , orderNum);
-                                cout << "Item added." << endl;
+                                if (orderNum <= 0) {
+                                    cout << "Invalid quantity!" << endl;
+                                } else {
+                                    customerOrder->addItem(selectedItem , orderNum);
+                                    cout << selectedItem->getItemName() << " (x" << orderNum << ") added." << endl;
+                                }
+                                cout << "Press Enter to continue.";
+                                cin.ignore(10000, '\n'); cin.get();
                             }
-
-                            delete loadedMenu;
                         }
 
                         else if(orderChoice == 102){
-                            cout << "Enter item ID and it`s quantity to update order: " << endl;
+                            cout << "Enter item ID and to update order: " << endl;
                             selectOrder = getValidatedInt();
+                            cout << "Enter item quantity to update order : " << endl;
                             orderNum = getValidatedInt();
 
                             customerOrder->updateOrderNumber(selectOrder , orderNum);
@@ -308,8 +334,33 @@ int main() {
                         else if(orderChoice == 103){
                             cout << "Enter item ID to remove from order list : " << endl;
                             selectOrder = getValidatedInt();
-
                             customerOrder->removeItem(selectOrder);
+                        }
+                        else if(orderChoice == 104){
+                            clearScreen();
+
+                            vector<Order*> allOrders = orderDao.getAllOrders();
+
+                            if(allOrders.empty()){
+                                cout << "No orders found in database!" << endl;
+                            }
+                            else {
+                                for(int i = 0; i < allOrders.size(); ++i) {
+                                    cout << "Order ID: " << allOrders[i]->getOrderID()
+                                         << " | Condition: " << allOrders[i]->getOrderCondition()
+                                         << " | Total Price: " << allOrders[i]->getTotalPrice() << endl;
+
+                                    cout << "----------------------------------------" << endl;
+                                }
+                            }
+
+                            for(int i = 0; i < allOrders.size(); ++i) {
+                                delete allOrders[i];
+                            }
+                            allOrders.clear();
+
+                            cout << "Press Enter to return." << endl;
+                            cin.get();
                         }
 
                         else{
@@ -317,31 +368,172 @@ int main() {
                         }
                     }
 
+                    loadedMenu.clear();
                     delete customerOrder;
+                    delete chooseResInCustomerMenu;
                 }
 
             }
+
         }
 
 
 
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////Restaurant manager////////////////////////////////////////
 
         else if (chooseRole == 2) {
             int restaurantManagerChoice = -1;
             while (true) {
                 clearScreen();
                 cout << "--- RESTAURANT MANAGER MENU ---" << endl;
-                cout << "Enter choice: ";
+
+
+                vector<Restaurant> allRestaurantsToShow = restaurantDao.getAllRestaurants();
+                bool foundAnyRestaurant = false;
+                if (allRestaurantsToShow.empty()) {
+                    cout << "There is no restaurant!" << endl;
+                }
+
+                else{
+                    for (int i = 0; i < allRestaurantsToShow.size(); ++i) {
+                            cout << "ID : " << allRestaurantsToShow[i].getID() << endl;
+                            cout << "Name : " << allRestaurantsToShow[i].getName() << endl;
+                            cout << "Address : " << allRestaurantsToShow[i].getAddress() << endl;
+                            cout << "Preparation Time : " << allRestaurantsToShow[i].getOrderPreparationTime() << endl;
+                            cout << "Activity : " << (allRestaurantsToShow[i].getInActive() == 1 ? "Open" : "Close") << endl;
+                            cout << "-------------------------------------" << endl;
+                            foundAnyRestaurant = true;
+                    }
+
+                    if(!foundAnyRestaurant){
+                        cout << "There is no restaurant!" << endl;
+                    }
+                }
+
+
+                ////////////////////////////////////////////////////Choose restaurant///////////////////////////////////
+                cout << "Please enter restaurant ID : " << endl;
+
+
                 restaurantManagerChoice = getValidatedInt();
 
                 if (restaurantManagerChoice == 0) {
                     break;
                 }
 
+                else {
+                    vector<menuItems *> loadedMenu = menuDao.getMenuByRestaurantId(restaurantManagerChoice);
+                    Restaurant *chooseResInRestaurantManagerMenu = restaurantDao.getRestaurantById(restaurantManagerChoice);
+
+                    if (chooseResInRestaurantManagerMenu == nullptr) {
+                        cout << "Wrong Restaurant ID!" << endl;
+                        cout << "Press Enter." << endl;
+                        for (int i = 0; i < loadedMenu.size(); ++i) {
+                            if (loadedMenu[i] != nullptr) delete loadedMenu[i];
+                        }
+                        loadedMenu.clear();
+
+                        cin.ignore(10000, '\n'); cin.get();
+                        continue;
+                    }
+                    else {
+                        clearScreen();
+                        chooseResInRestaurantManagerMenu->setMenu(loadedMenu);
+
+                        chooseResInRestaurantManagerMenu->printMyMenu();
+                        cout << "-----------------------------------------------------------------" << endl;
+                    }
+
+
+                    ////////////////////////////////////////////////////////////////////////////////////////////////////
+                    int resManagerChoice = -1;
+                    while(true){
+                        int addMenuItems = -1 ;
+                        cout << "Press 201 to add item to menu. " << endl;
+                        cout << "Press 202 to delete item from menu. " << endl;
+                        cout << "Press 203 to edit menu items." << endl;
+
+                        resManagerChoice = getValidatedInt();
+
+                        if(resManagerChoice == 0){
+                            break;
+                        }
+                        else if(resManagerChoice == 201){
+                            while(true){
+                                cout << "1. Add Food" << endl;
+                                cout << "2. Add Drink" << endl;
+                                cout << "0. Finish adding menu items" << endl;
+
+                                addMenuItems = getValidatedInt();
+
+                                if(addMenuItems == 0) break;
+
+                                else if(addMenuItems == 1){
+                                    addFoodToMenu(restaurantManagerChoice , menuDao);
+                                }
+
+
+                                else if(addMenuItems == 2){
+                                    addDrinkToMenu(restaurantManagerChoice , menuDao);
+                                }
+
+                                else {
+                                    cout << "Invalid Choice!" << endl;
+                                }
+                            }
+                        }
+
+                        else if(resManagerChoice == 202 ){
+
+                            int deleteRestaurantMenuItemID = -1 ;
+
+                            cout << "Enter item ID for delete it : " << endl;
+                            deleteRestaurantMenuItemID = getValidatedInt();
+
+                            if (menuDao.deleteMenuItem(deleteRestaurantMenuItemID)) {
+                                cout << "Item deleted from the restaurant's menu!" << endl;
+
+                            } else {
+                                cout << "Item not found!" << endl;
+                            }
+                        }
+
+                        else if(resManagerChoice == 203){
+                            
+                        }
+
+
+                        else {
+                            cout << "Invalid choice! Press Enter." << endl;
+                            cin.ignore() ; cin.get();
+                        }
+
+
+
+                        loadedMenu = menuDao.getMenuByRestaurantId(restaurantManagerChoice);
+                        chooseResInRestaurantManagerMenu->setMenu(loadedMenu);
+                        cin.ignore() ; cin.get();
+                    }
+
+
+
+
+
+
+                    loadedMenu.clear();
+                    delete chooseResInRestaurantManagerMenu;
+                    //////////////////////////////////////////////
+                }
             }
         }
+
+
+
+
+
+
+        //////////////////////////////////////////////////////System Manager/////////////////////////////////////////////
         else if (chooseRole == 3) {
             clearScreen();
             int systemManagerChoice = -1;
@@ -427,10 +619,10 @@ int main() {
                             cout << "Invalid Choice!" << endl;
                         }
                     }
-                    cin.ignore(); cin.get();
+                    cin.ignore() ; cin.get();
 
                 }
-    ////////////////////////////////////////////////////Access to restaurant activity///////////////////////////////////
+                    ////////////////////////////////////////////////////Access to restaurant activity///////////////////////////////////
 
                 else if(systemManagerChoice == 302){
                     int restaurantID = -1 ;
@@ -501,27 +693,43 @@ int main() {
                     }
                     cin.ignore(); cin.get();
                 }
-                ///////////////////////////////////////////////Show restaurant`s menu///////////////////////////////////
+                    ///////////////////////////////////////////////Show restaurant`s menu///////////////////////////////////
 
                 else if(systemManagerChoice == 305){
                     clearScreen();
                     bool findResToShowMenu = false;
                     int showMenuID = -1;
-                    cout << "Enter Restaurant`s ID to show it`s menu : " << endl;
+                    cout << "Enter Restaurant`s ID to show its menu: " << endl;
                     showMenuID = getValidatedInt();
 
                     Restaurant* findRestaurantToShowMenu = restaurantDao.getRestaurantById(showMenuID);
 
                     if (findRestaurantToShowMenu != nullptr) {
                         vector<menuItems*> loadedMenu = menuDao.getMenuByRestaurantId(showMenuID);
-                        findRestaurantToShowMenu->setMenu(loadedMenu);
-                        findRestaurantToShowMenu->printMyMenu();
+
+                        if(!loadedMenu.empty()) {
+                            findRestaurantToShowMenu->setMenu(loadedMenu);
+                            cout << "\n--- MENU ITEMS ---" << endl;
+                            findRestaurantToShowMenu->printMyMenu();
+                            findResToShowMenu = true;
+                        } else {
+                            cout << "This restaurant exists but its menu is empty!" << endl;
+                            findResToShowMenu = true;
+                        }
+
+
+                        loadedMenu.clear();
+
                         delete findRestaurantToShowMenu;
-                        findResToShowMenu = true;
                     }
 
-                    if(!findResToShowMenu) cout << "There is no restaurant with ID: " << showMenuID << endl;
-                    cin.ignore(); cin.get();
+                    if(!findResToShowMenu) {
+                        cout << "There is no restaurant with ID: " << showMenuID << endl;
+                    }
+
+                    cout << "Press Enter to return to manager menu.";
+                    cin.ignore(10000, '\n');
+                    cin.get();
                 }
 ////////////////////////////////////////////////////////////Show all restaurants////////////////////////////////////////
                 else if (systemManagerChoice == 306) {
@@ -535,9 +743,9 @@ int main() {
                     else {
                         for (const auto& res : allRestaurantsToShow) {
                             cout << "ID : " << res.getID()
-                            << " | Name : " << res.getName()
-                            << " | Address : " << res.getAddress()
-                            << " | Availability : " << res.getInActive() << endl;
+                                 << " | Name : " << res.getName()
+                                 << " | Address : " << res.getAddress()
+                                 << " | Availability : " << res.getInActive() << endl;
                             cout << "-------------------------------" << endl;
                         }
                     }
@@ -572,7 +780,7 @@ int main() {
 
                     cout << "Press Enter to continue." ;
                     cin.ignore(); cin.get();
-                    
+
                 }
 
 
@@ -613,7 +821,7 @@ int main() {
                                 cout << "Invalid Choice!" << endl;
                             }
                         }
-                        cin.ignore(); cin.get();
+                        cin.ignore() ; cin.get();
                     }
 
                     delete currentRes;
@@ -631,4 +839,6 @@ int main() {
 
 
 
+
+    return 0;
 }

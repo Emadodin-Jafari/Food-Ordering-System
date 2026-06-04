@@ -1,0 +1,3 @@
+I:/C++ (Ferdowsi)/Food-Ordering-System/cmake-build-release/CMakeFiles/Food_Ordering_System.dir
+I:/C++ (Ferdowsi)/Food-Ordering-System/cmake-build-release/CMakeFiles/edit_cache.dir
+I:/C++ (Ferdowsi)/Food-Ordering-System/cmake-build-release/CMakeFiles/rebuild_cache.dir
