@@ -75,6 +75,7 @@ bool Database::createTables() {
             "cookingTime INTEGER, "
             "drinkVolume INTEGER, "
             "description TEXT, "
+            "availability INTEGER DEFAULT 1, "
             "FOREIGN KEY(restaurant_id) REFERENCES Restaurants(id)"
             ");";
 

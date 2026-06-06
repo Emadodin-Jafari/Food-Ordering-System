@@ -12,13 +12,14 @@ MenuDAO::MenuDAO(Database& database) : db(database) {}
 
 bool MenuDAO::addFood(int restaurantId, const Food& food) {
     string sql =
-            "INSERT INTO MenuItems (id, restaurant_id, name, price, type, cookingTime, drinkVolume, description) VALUES (" +
+            "INSERT INTO MenuItems (id, restaurant_id, name, price, type, cookingTime, drinkVolume, description, availability) VALUES (" +
             to_string(food.getItemID()) + ", " +
             to_string(restaurantId) + ", '" +
             food.getItemName() + "', " +
             to_string(food.getItemPrice()) + ", 'Food', " +
             to_string(food.getCookingTime()) + ", 0, '" +
-            food.getItemDescription() + "');";
+            food.getItemDescription() + "', " +
+            (food.getItemAvailability() ? "1" : "0") + ");";
 
     char* errorMessage = nullptr;
     int exit = sqlite3_exec(db.getConnection(), sql.c_str(), nullptr, nullptr, &errorMessage);
@@ -33,13 +34,14 @@ bool MenuDAO::addFood(int restaurantId, const Food& food) {
 
 bool MenuDAO::addDrink(int restaurantId, const Drink& drink) {
     string sql =
-            "INSERT INTO MenuItems (id, restaurant_id, name, price, type, cookingTime, drinkVolume, description) VALUES (" +
+            "INSERT INTO MenuItems (id, restaurant_id, name, price, type, cookingTime, drinkVolume, description, availability) VALUES (" +
             to_string(drink.getItemID()) + ", " +
             to_string(restaurantId) + ", '" +
             drink.getItemName() + "', " +
             to_string(drink.getItemPrice()) + ", 'Drink', 0, " +
             to_string(drink.getDrinkVolume()) + ", '" +
-            drink.getItemDescription() + "');";
+            drink.getItemDescription() + "', " +
+            (drink.getItemAvailability() ? "1" : "0") + ");";
 
     char* errorMessage = nullptr;
     int exit = sqlite3_exec(db.getConnection(), sql.c_str(), nullptr, nullptr, &errorMessage);
@@ -80,8 +82,11 @@ int menuReadCallback(void* data, int argc, char** argv, char** azColName) {
 
         if (argv[7]) item->setItemDescription(argv[7]);
 
-        item->setItemAvailability(true);
-        menuList->push_back(item);
+        if (argv[8]) {
+            item->setItemAvailability(stoi(argv[8]) == 1);
+        } else {
+            item->setItemAvailability(true);
+        }        menuList->push_back(item);
     }
 
     return 0;
@@ -89,7 +94,7 @@ int menuReadCallback(void* data, int argc, char** argv, char** azColName) {
 
 vector<menuItems*> MenuDAO::getMenuByRestaurantId(int restaurantId) {
     vector<menuItems*> restaurantMenu;
-    string sql = "SELECT id, restaurant_id, name, price, type, cookingTime, drinkVolume, description FROM MenuItems WHERE restaurant_id = " + to_string(restaurantId) + ";";
+    string sql = "SELECT id, restaurant_id, name, price, type, cookingTime, drinkVolume, description , availability FROM MenuItems WHERE restaurant_id = " + to_string(restaurantId) + ";";
     char* errorMessage = nullptr;
 
     sqlite3_exec(db.getConnection(), sql.c_str(), menuReadCallback, &restaurantMenu, &errorMessage);
@@ -104,7 +109,7 @@ vector<menuItems*> MenuDAO::getMenuByRestaurantId(int restaurantId) {
 
 menuItems* MenuDAO::getMenuItemById(int itemId) {
     vector<menuItems*> tempContainer;
-    string sql = "SELECT id, restaurant_id, name, price, type, cookingTime, drinkVolume, description FROM MenuItems WHERE id = " + to_string(itemId) + ";";
+    string sql = "SELECT id, restaurant_id, name, price, type, cookingTime, drinkVolume, description , availability FROM MenuItems WHERE id = " + to_string(itemId) + ";";
     char* errorMessage = nullptr;
 
     sqlite3_exec(db.getConnection(), sql.c_str(), menuReadCallback, &tempContainer, &errorMessage);
@@ -130,9 +135,11 @@ bool MenuDAO::updateFood(int itemId, const Food& food) {
             "UPDATE MenuItems SET name = '" + food.getItemName() +
             "', price = " + to_string(food.getItemPrice()) +
             ", cookingTime = " + to_string(food.getCookingTime()) +
-            ", drinkVolume = NULL, type = 'Food', " +
+            ", description = '" + food.getItemDescription() + "', " +
+            "drinkVolume = NULL, type = 'Food', " +
             "availability = " + (food.getItemAvailability() ? "1" : "0") + " " +
             "WHERE id = " + to_string(itemId) + ";";
+
     char* errorMessage = nullptr;
     int exit = sqlite3_exec(db.getConnection(), sql.c_str(), nullptr, nullptr, &errorMessage);
 
@@ -149,7 +156,10 @@ bool MenuDAO::updateDrink(int itemId, const Drink& drink) {
             "UPDATE MenuItems SET name = '" + drink.getItemName() +
             "', price = " + to_string(drink.getItemPrice()) +
             ", drinkVolume = " + to_string(drink.getDrinkVolume()) +
-            ", cookingTime = NULL, type = 'Drink' WHERE id = " + to_string(itemId) + ";";
+            ", description = '" + drink.getItemDescription() + "', " +
+            "cookingTime = NULL, type = 'Drink', " +
+            "availability = " + (drink.getItemAvailability() ? "1" : "0") + " " +
+            "WHERE id = " + to_string(itemId) + ";";
 
     char* errorMessage = nullptr;
     int exit = sqlite3_exec(db.getConnection(), sql.c_str(), nullptr, nullptr, &errorMessage);

@@ -268,7 +268,8 @@ int main() {
                     Order* customerOrder = new Order;
                     int orderChoice = -1 , selectOrder = -1 , orderNum = -1;
                     while(true){
-                        cout << "Press 0 to finish adding order." << endl;
+                        cout << "Press 0 to exit ordering page." << endl;
+                        cout << "Press 100 to finish adding order." << endl;
                         cout << "Press 101 to add to order." << endl;
                         cout << "Press 102 to change number of order." << endl;
                         cout << "Press 103 to remove item from order list." << endl;
@@ -280,6 +281,9 @@ int main() {
                         orderChoice = getValidatedInt();
 
                         if(orderChoice == 0){
+                            break;
+                        }
+                        else if(orderChoice == 100){
                             if (customerOrder->getOrderItems().empty()) {
                                 cout << "Your order list is empty! Cannot complete an empty order." << endl;
                                 cin.ignore(); cin.get();
@@ -298,7 +302,7 @@ int main() {
                             cout << "Enter quantity: ";
                             orderNum = getValidatedInt();
 
-                            for (size_t i = 0; i < loadedMenu.size(); ++i) {
+                            for (int i = 0; i < loadedMenu.size(); ++i) {
                                 if (loadedMenu[i] != nullptr && loadedMenu[i]->getItemID() == selectOrder) {
                                     selectedItem = loadedMenu[i];
                                     break;
@@ -309,6 +313,9 @@ int main() {
                                 cout << "Error: Item ID [" << selectOrder << "] not found in this menu!" << endl;
                                 cout << "Press Enter to continue.";
                                 cin.ignore(10000, '\n'); cin.get();
+                            }
+                            else if(selectedItem->getItemAvailability() == false || selectedItem->getItemAvailability() == 0){
+                                cout << "The desired product is not available." << endl;
                             }
                             else {
                                 if (orderNum <= 0) {
@@ -450,9 +457,12 @@ int main() {
                     int resManagerChoice = -1;
                     while(true){
                         int addMenuItems = -1 ;
+                        cout << "Press 0 to exit page." << endl;
                         cout << "Press 201 to add item to menu. " << endl;
                         cout << "Press 202 to delete item from menu. " << endl;
                         cout << "Press 203 to edit menu items." << endl;
+                        cout << "Press 204 to show order list." << endl;
+                        cout << "Press 205 to edit condition." << endl;
 
                         resManagerChoice = getValidatedInt();
 
@@ -497,10 +507,198 @@ int main() {
                             } else {
                                 cout << "Item not found!" << endl;
                             }
+                            cout << "Press Enter to continue.";
+                            cin.ignore(10000, '\n'); cin.get();
                         }
 
                         else if(resManagerChoice == 203){
-                            
+                            menuItems *selectedItem = nullptr;
+                            bool successEditing = false;
+                            int itemIdToEdit = -1;
+
+                            cout << "Enter item ID to edit: ";
+                            itemIdToEdit = getValidatedInt();
+
+                            for (int i = 0; i < loadedMenu.size(); ++i) {
+                                if (loadedMenu[i] != nullptr && loadedMenu[i]->getItemID() == itemIdToEdit) {
+                                    selectedItem = loadedMenu[i];
+                                    break;
+                                }
+                            }
+
+                            if(selectedItem == nullptr){
+                                cout << "Error: Item ID [" << itemIdToEdit << "] not found in this menu!" << endl;
+                                cout << "Press Enter to continue.";
+                                cin.ignore(10000, '\n'); cin.get();
+                            }
+
+                            else{
+                                clearScreen();
+                                int editCode = -1;
+                                cout << "Press 2031 to edit price." << endl;
+                                cout << "Press 2032 to edit description." << endl;
+                                cout << "Press 2033 to edit availability." << endl;
+
+                                editCode = getValidatedInt();
+
+                                if(editCode == 2031){
+                                    double editPrice = -1;
+                                    cout << "Enter new price : " << endl;
+                                    editPrice = getValidatedDouble();
+
+                                    selectedItem->setItemPrice(editPrice);
+                                    successEditing = true;
+                                }
+
+                                else if(editCode == 2032){
+                                    string editDescription;
+                                    cout << "Enter new description : " <<endl;
+                                    cin.ignore(10000, '\n');
+                                    getline(cin , editDescription);
+
+                                    selectedItem->setItemDescription(editDescription);
+                                    successEditing = true;
+                                }
+
+                                else if(editCode == 2033){
+                                    bool editAvailability = false;
+                                    cout << "Enter new availability (1 for true / 0 for false) : " << endl;
+                                    editAvailability = getValidatedBool();
+
+                                    selectedItem->setItemAvailability(editAvailability);
+                                    successEditing = true;
+                                }
+
+                                else{
+                                    cout << "Wrong choice." << endl;
+                                }
+
+
+
+                                if(successEditing){
+                                    Food *foodPtr = dynamic_cast<Food*>(selectedItem);
+                                    Drink *drinkPtr = dynamic_cast<Drink*>(selectedItem);
+
+                                    bool successEdit = false;
+
+                                    if(foodPtr != nullptr){
+                                        successEdit = menuDao.updateFood(itemIdToEdit , *foodPtr);
+                                    }
+
+                                    else if(drinkPtr != nullptr){
+                                        successEdit = menuDao.updateDrink(itemIdToEdit , *drinkPtr);
+                                    }
+                                    if (successEdit) {
+                                        cout << "Database updated successfully!" << endl;
+                                        chooseResInRestaurantManagerMenu->setMenu(loadedMenu);
+                                    }
+                                    else {
+                                        cout << "Failed to update database!" << endl;
+                                    }
+                                    cout << "Press Enter to continue.";
+                                    cin.ignore(10000, '\n'); cin.get();
+
+                                }
+                                else{}
+
+
+                            }
+                        }
+
+                        else if(resManagerChoice == 204){
+                            clearScreen();
+
+                            vector<Order*> allOrders = orderDao.getAllOrders();
+
+                            if(allOrders.empty()){
+                                cout << "No orders found in database!" << endl;
+                            }
+                            else {
+                                for(int i = 0; i < allOrders.size(); ++i) {
+                                    cout << "Order ID: " << allOrders[i]->getOrderID()
+                                         << " | Condition: " << allOrders[i]->getOrderCondition()
+                                         << " | Total Price: " << allOrders[i]->getTotalPrice() << endl;
+
+                                    cout << "----------------------------------------" << endl;
+                                }
+                            }
+
+                            for(int i = 0; i < allOrders.size(); ++i) {
+                                delete allOrders[i];
+                            }
+                            allOrders.clear();
+
+                            cout << "Press Enter to return." << endl;
+                            cin.get();
+                        }
+
+                        else if(resManagerChoice == 205){
+                            clearScreen();
+
+                            vector<Order*> allOrders = orderDao.getAllOrders();
+
+                            if(allOrders.empty()){
+                                cout << "No orders found in database!" << endl;
+                            }
+
+                            else{
+                                int orderIdToChangeCondition = -1 , changingCondition = -1;
+                                bool updateCondition = false;
+                                cout << "Enter order ID to change condition : " << endl;
+                                orderIdToChangeCondition = getValidatedInt();
+                                cout << "Press 2051 to change condition to <<In preparation>>." << endl;
+                                cout << "Press 2052 to change condition to <<Ready to send>>." << endl;
+                                cout << "Press 2053 to change condition to <<Delivered>>." << endl;
+                                changingCondition = getValidatedInt();
+
+                                if(changingCondition == 2051){
+                                    for (int i = 0; i < allOrders.size(); ++i) {
+                                        if(allOrders[i]->getOrderID() == orderIdToChangeCondition){
+                                            allOrders[i]->setOrderCondition("In preparation");
+                                            orderDao.updateOrderCondition(orderIdToChangeCondition , "In preparation");
+                                            updateCondition = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                else if(changingCondition == 2052){
+                                    for (int i = 0; i < allOrders.size(); ++i) {
+                                        if(allOrders[i]->getOrderID() == orderIdToChangeCondition){
+                                            allOrders[i]->setOrderCondition("Ready to send");
+                                            orderDao.updateOrderCondition(orderIdToChangeCondition , "Ready to send");
+                                            updateCondition = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                else if(changingCondition == 2053){
+                                    for (int i = 0; i < allOrders.size(); ++i) {
+                                        if(allOrders[i]->getOrderID() == orderIdToChangeCondition){
+                                            allOrders[i]->setOrderCondition("Delivered");
+                                            orderDao.updateOrderCondition(orderIdToChangeCondition , "Delivered");
+                                            updateCondition = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                else {
+                                    cout << "Wrong condition!" << endl;
+                                }
+
+                                if(updateCondition){
+                                    cout << "Condition updated." << endl;
+                                }
+
+
+                            }
+
+                            for (int i = 0; i < allOrders.size(); ++i) {
+                                if (allOrders[i] != nullptr) delete allOrders[i];
+                            }
+                            allOrders.clear();
                         }
 
 
@@ -511,9 +709,13 @@ int main() {
 
 
 
+                        for (int i = 0; i < loadedMenu.size(); ++i) {
+                            if (loadedMenu[i] != nullptr) delete loadedMenu[i];
+                        }
+                        loadedMenu.clear();
+
                         loadedMenu = menuDao.getMenuByRestaurantId(restaurantManagerChoice);
                         chooseResInRestaurantManagerMenu->setMenu(loadedMenu);
-                        cin.ignore() ; cin.get();
                     }
 
 
@@ -665,6 +867,40 @@ int main() {
                 }
 ////////////////////////////////////////////////////////////////Show Reports////////////////////////////////////////////
 
+
+                else if(systemManagerChoice == 303){
+                    clearScreen();
+                    long double totalSales = 0;
+                    int orderNumber = -1;
+
+                    vector<Order*> allOrders = orderDao.getAllOrders();
+
+                    if(allOrders.empty()){
+                        cout << "No orders found in database!" << endl;
+                    }
+
+                    else {
+                        for (int i = 0; i < allOrders.size(); ++i) {
+                            totalSales += allOrders[i]->getTotalPrice();
+                        }
+                        orderNumber = allOrders.size();
+
+
+                        cout << "Total Sales is : " << totalSales << endl;
+                        cout << "Number of orders is : "<< orderNumber << endl;
+                    }
+
+                    for(int i = 0; i < allOrders.size(); ++i) {
+                        if (allOrders[i] != nullptr) {
+                            delete allOrders[i];
+                        }
+                    }
+                    allOrders.clear();
+
+                    cout << "Press Enter." <<endl;
+                    cin.ignore() ; cin.get();
+
+                }
 
 ///////////////////////////////////////////////////////////////Delete Restaurant////////////////////////////////////////
                 else if(systemManagerChoice == 304 ){
