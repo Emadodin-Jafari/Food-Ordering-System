@@ -86,6 +86,23 @@ bool Database::createTables() {
         return false;
     }
 
+
+    string sqlCustomers =
+            "CREATE TABLE IF NOT EXISTS Customers ("
+            "id INTEGER PRIMARY KEY, "
+            "name TEXT NOT NULL, "
+            "phoneNumber TEXT, "
+            "points INTEGER DEFAULT 0, "
+            "current_level TEXT DEFAULT 'Normal' "
+            ");";
+
+    rc = sqlite3_exec(db, sqlCustomers.c_str(), nullptr, nullptr, &errMsg);
+    if (rc != SQLITE_OK) {
+        cerr << "Error creating Customers table: " << errMsg << endl;
+        sqlite3_free(errMsg);
+        return false;
+    }
+
     cout << "Database tables checked/created successfully!" << endl;
     return true;
 }

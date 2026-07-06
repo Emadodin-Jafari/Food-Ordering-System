@@ -7,6 +7,8 @@
 #include "MenuDAO.h"
 #include "Order.h"
 #include "OrderDAO.h"
+#include "Customer.h"
+#include "CustomerDAO.h"
 
 using namespace std;
 
@@ -149,7 +151,7 @@ int main() {
 
     /////////////////////////////////////////////////////Variables//////////////////////////////////////////////////////
     int chooseRole = -2;
-    vector<Restaurant*> restaurants;
+    vector<Restaurant *> restaurants;
 
     ////////////////////////////////////////////////////Open and link Database//////////////////////////////////////////
     Database db;
@@ -166,7 +168,7 @@ int main() {
     RestaurantDAO restaurantDao(db);
     MenuDAO menuDao(db);
     OrderDAO orderDao(db);
-
+    CustomerDAO customerDao(db);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     while (true) {
@@ -194,24 +196,87 @@ int main() {
         /////////////////////////////////////////////////Customer Menu//////////////////////////////////////////////////
 
         if (chooseRole == 1) {
+            clearScreen();
+            cout << "Press 1 to Login" << endl;
+            cout << "Press 2 to Sign Up" << endl;
+            cout << "Press 0 to Go Back" << endl;
+
+            int loginChoice = getValidatedInt();
+            Customer *currentCustomer = nullptr;
+            if (loginChoice == 0) continue;
+
+            if (loginChoice == 1) {
+                int chooseCustomerID = -1;
+                cout << "Enter customer ID : " << endl;
+                chooseCustomerID = getValidatedInt();
+
+                currentCustomer = customerDao.getCustomerById(chooseCustomerID);
+
+                if (currentCustomer == nullptr) {
+                    cout << "Customer ID not found! Press Enter to return." << endl;
+                    cin.ignore();
+                    cin.get();
+                    continue;
+                }
+            }
+            else if (loginChoice == 2) {
+                int newCustomerID = -1;
+                cout << "Enter new customer ID : " << endl;
+                newCustomerID = getValidatedInt();
+
+                Customer *checkExist = customerDao.getCustomerById(newCustomerID);
+
+                if (checkExist != nullptr) {
+                    cout << "This ID is already taken! Press Enter to return." << endl;
+                    delete checkExist;
+                    cin.ignore();
+                    cin.get();
+                    continue;
+                }
+
+                string newCustomerName, newCustomerPhoneNumber;
+                cout << "Enter new customer name : " << endl;
+                cin.ignore();
+                getline(cin, newCustomerName);
+                cout << "Enter new customer phone number : " << endl;
+                getline(cin, newCustomerPhoneNumber);
+
+                Customer newCustomer;
+                newCustomer.setCustomerID(newCustomerID);
+                newCustomer.setCustomerName(newCustomerName);
+                newCustomer.setCustomerPhoneNumber(newCustomerPhoneNumber);
+                newCustomer.setCustomerPoints(0);
+
+                if (customerDao.addCustomer(newCustomer)) {
+                    cout << "Sign up successful! Your ID is: " << newCustomerID << endl;
+                    currentCustomer = new Customer(newCustomer);
+                }
+                else {
+                    cout << "Registration failed! Press Enter." << endl;
+                    cin.get();
+                    continue;
+                }
+            }
+            else {
+                cout << "Invalid choice!" << endl;
+                continue;
+            }
+
             int customerChoice = -1;
             while (true) {
                 clearScreen();
                 cout << "--- CUSTOMER MENU ---" << endl;
-
+                cout << "Press 0 to Log Out and return to Main Menu." << endl;
+                cout << "-------------------------------------------" << endl;
 
                 ///////////////////////////////////////Show Active restaurants//////////////////////////////////////////
-
-
                 vector<Restaurant> allActiveRestaurantsToShow = restaurantDao.getAllRestaurants();
                 bool foundAnyActiveRestaurant = false;
                 if (allActiveRestaurantsToShow.empty()) {
                     cout << "There is no restaurant!" << endl;
-                }
-
-                else{
-                    for (int i = 0; i < allActiveRestaurantsToShow.size(); ++i) {
-                        if(allActiveRestaurantsToShow[i].getInActive() == true){
+                } else {
+                    for (size_t i = 0; i < allActiveRestaurantsToShow.size(); ++i) {
+                        if (allActiveRestaurantsToShow[i].getInActive() == true) {
                             cout << "ID : " << allActiveRestaurantsToShow[i].getID() << endl;
                             cout << "Name : " << allActiveRestaurantsToShow[i].getName() << endl;
                             cout << "Address : " << allActiveRestaurantsToShow[i].getAddress() << endl;
@@ -221,53 +286,43 @@ int main() {
                         }
                     }
 
-                    if(!foundAnyActiveRestaurant){
+                    if (!foundAnyActiveRestaurant) {
                         cout << "There is no active restaurant!" << endl;
                     }
                 }
 
-
                 ////////////////////////////////////////////////////Choose restaurant///////////////////////////////////
                 cout << "Please enter restaurant ID : " << endl;
-
                 customerChoice = getValidatedInt();
 
                 if (customerChoice == 0) {
                     break;
                 }
-
-                else{
-                    vector<menuItems*> loadedMenu = menuDao.getMenuByRestaurantId(customerChoice);
+                else {
+                    vector<menuItems *> loadedMenu = menuDao.getMenuByRestaurantId(customerChoice);
                     Restaurant *chooseResInCustomerMenu = restaurantDao.getRestaurantById(customerChoice);
 
-                    if (chooseResInCustomerMenu == nullptr){
+                    if (chooseResInCustomerMenu == nullptr) {
                         cout << "Wrong Restaurant ID!" << endl;
                         cout << "Press Enter." << endl;
-                        for (int i = 0; i < loadedMenu.size(); ++i) {
+                        for (size_t i = 0; i < loadedMenu.size(); ++i) {
                             delete loadedMenu[i];
                         }
                         loadedMenu.clear();
-                        cin.ignore(); cin.get();
+                        cin.ignore();
+                        cin.get();
                         continue;
-                    }
-                    else{
+                    } else {
                         clearScreen();
                         chooseResInCustomerMenu->setMenu(loadedMenu);
-
                         chooseResInCustomerMenu->printMyMenu();
                         cout << "-----------------------------------------------------------------" << endl;
                     }
 
-
-
-
-
-
                     ////////////////////////////////////////////////////Order///////////////////////////////////////////
-
-                    Order* customerOrder = new Order;
-                    int orderChoice = -1 , selectOrder = -1 , orderNum = -1;
-                    while(true){
+                    Order *customerOrder = new Order;
+                    int orderChoice = -1, selectOrder = -1, orderNum = -1;
+                    while (true) {
                         cout << "Press 0 to exit ordering page." << endl;
                         cout << "Press 100 to finish adding order." << endl;
                         cout << "Press 101 to add to order." << endl;
@@ -280,21 +335,31 @@ int main() {
 
                         orderChoice = getValidatedInt();
 
-                        if(orderChoice == 0){
+                        if (orderChoice == 0) {
                             break;
                         }
-                        else if(orderChoice == 100){
+                        else if (orderChoice == 100) {
                             if (customerOrder->getOrderItems().empty()) {
                                 cout << "Your order list is empty! Cannot complete an empty order." << endl;
-                                cin.ignore(); cin.get();
+                                cin.ignore();
+                                cin.get();
                                 continue;
                             }
                             cout << "Order completed." << endl;
                             customerOrder->setOrderCondition("Pending");
+
+                            //customerOrder->setCustomer(currentCustomer);
                             orderDao.addOrder(*customerOrder);
+                            //orderDao.printInvoice(*customerOrder);
+
+                            cout << "\nPress Enter to continue.";
+                            cin.ignore();
+                            cin.get();
+
+                            customerOrder->setCustomer(nullptr);
                             break;
                         }
-                        else if(orderChoice == 101){
+                        else if (orderChoice == 101) {
                             menuItems *selectedItem = nullptr;
 
                             cout << "Enter item ID to add: ";
@@ -302,87 +367,79 @@ int main() {
                             cout << "Enter quantity: ";
                             orderNum = getValidatedInt();
 
-                            for (int i = 0; i < loadedMenu.size(); ++i) {
+                            for (size_t i = 0; i < loadedMenu.size(); ++i) {
                                 if (loadedMenu[i] != nullptr && loadedMenu[i]->getItemID() == selectOrder) {
                                     selectedItem = loadedMenu[i];
                                     break;
                                 }
                             }
 
-                            if(selectedItem == nullptr){
+                            if (selectedItem == nullptr) {
                                 cout << "Error: Item ID [" << selectOrder << "] not found in this menu!" << endl;
                                 cout << "Press Enter to continue.";
-                                cin.ignore(10000, '\n'); cin.get();
-                            }
-                            else if(selectedItem->getItemAvailability() == false || selectedItem->getItemAvailability() == 0){
+                                cin.ignore(10000, '\n');
+                                cin.get();
+                            } else if (selectedItem->getItemAvailability() == false || selectedItem->getItemAvailability() == 0) {
                                 cout << "The desired product is not available." << endl;
-                            }
-                            else {
+                            } else {
                                 if (orderNum <= 0) {
                                     cout << "Invalid quantity!" << endl;
                                 } else {
-                                    customerOrder->addItem(selectedItem , orderNum);
+                                    customerOrder->addItem(selectedItem, orderNum);
                                     cout << selectedItem->getItemName() << " (x" << orderNum << ") added." << endl;
                                 }
                                 cout << "Press Enter to continue.";
-                                cin.ignore(10000, '\n'); cin.get();
+                                cin.ignore(10000, '\n');
+                                cin.get();
                             }
-                        }
-
-                        else if(orderChoice == 102){
-                            cout << "Enter item ID and to update order: " << endl;
+                        } else if (orderChoice == 102) {
+                            cout << "Enter item ID to update order: " << endl;
                             selectOrder = getValidatedInt();
                             cout << "Enter item quantity to update order : " << endl;
                             orderNum = getValidatedInt();
 
-                            customerOrder->updateOrderNumber(selectOrder , orderNum);
-                        }
-
-                        else if(orderChoice == 103){
+                            customerOrder->updateOrderNumber(selectOrder, orderNum);
+                        } else if (orderChoice == 103) {
                             cout << "Enter item ID to remove from order list : " << endl;
                             selectOrder = getValidatedInt();
                             customerOrder->removeItem(selectOrder);
                         }
-                        else if(orderChoice == 104){
+                        else if (orderChoice == 104) {
                             clearScreen();
+                            cout << "--- CURRENT BASKET ---" << endl;
 
-                            vector<Order*> allOrders = orderDao.getAllOrders();
-
-                            if(allOrders.empty()){
-                                cout << "No orders found in database!" << endl;
-                            }
-                            else {
-                                for(int i = 0; i < allOrders.size(); ++i) {
-                                    cout << "Order ID: " << allOrders[i]->getOrderID()
-                                         << " | Condition: " << allOrders[i]->getOrderCondition()
-                                         << " | Total Price: " << allOrders[i]->getTotalPrice() << endl;
-
-                                    cout << "----------------------------------------" << endl;
-                                }
-                            }
-
-                            for(int i = 0; i < allOrders.size(); ++i) {
-                                delete allOrders[i];
-                            }
-                            allOrders.clear();
+                            customerOrder->setCustomer(currentCustomer);
+                            orderDao.printInvoice(*customerOrder);
 
                             cout << "Press Enter to return." << endl;
+                            cin.ignore();
                             cin.get();
                         }
-
-                        else{
+                        else {
                             cout << "Invalid number!" << endl;
                         }
                     }
 
+                    for (size_t i = 0; i < loadedMenu.size(); ++i) {
+                        if (loadedMenu[i] != nullptr) delete loadedMenu[i];
+                    }
                     loadedMenu.clear();
-                    delete customerOrder;
-                    delete chooseResInCustomerMenu;
-                }
 
+                    if (customerOrder != nullptr) {
+                        delete customerOrder;
+                    }
+                    if (chooseResInCustomerMenu != nullptr) {
+                        delete chooseResInCustomerMenu;
+                    }
+                }
             }
 
+            if (currentCustomer != nullptr) {
+                delete currentCustomer;
+                currentCustomer = nullptr;
+            }
         }
+
 
 
 
@@ -608,7 +665,7 @@ int main() {
                         else if(resManagerChoice == 204){
                             clearScreen();
 
-                            vector<Order*> allOrders = orderDao.getAllOrders();
+                            auto allOrders = orderDao.getAllOrders();
 
                             if(allOrders.empty()){
                                 cout << "No orders found in database!" << endl;
@@ -635,7 +692,7 @@ int main() {
                         else if(resManagerChoice == 205){
                             clearScreen();
 
-                            vector<Order*> allOrders = orderDao.getAllOrders();
+                            auto allOrders = orderDao.getAllOrders();
 
                             if(allOrders.empty()){
                                 cout << "No orders found in database!" << endl;
@@ -751,6 +808,7 @@ int main() {
                 cout << "Press 306 for Show all restaurants." << endl;
                 cout << "Press 307 for delete restaurant`s menu item." << endl;
                 cout << "Press 308 for add restaurant`s menu item." << endl;
+                cout << "Press 309 for change customer point and level." << endl;
                 systemManagerChoice = getValidatedInt();
 
                 if (systemManagerChoice == 0) {
@@ -873,7 +931,7 @@ int main() {
                     long double totalSales = 0;
                     int orderNumber = -1;
 
-                    vector<Order*> allOrders = orderDao.getAllOrders();
+                    auto allOrders = orderDao.getAllOrders();
 
                     if(allOrders.empty()){
                         cout << "No orders found in database!" << endl;
@@ -1061,6 +1119,32 @@ int main() {
                     }
 
                     delete currentRes;
+                }
+
+
+                /////////////////////////////////////Change Customer Level//////////////////////////////////////////////
+
+                else if(systemManagerChoice == 309){
+                    int customerTargetId , newCustomerPoint;
+                    cout << "Enter Customer ID : " << endl;
+
+                    customerTargetId = getValidatedInt();
+
+                    cout << "Enter customer new point : " << endl;
+
+                    newCustomerPoint = getValidatedInt();
+                    Customer* currentCust = customerDao.getCustomerById(customerTargetId);
+
+                    if (currentCust != nullptr && currentCust->getCustomerID() == customerTargetId) {
+                        if (orderDao.adminUpdateCustomerPoints(currentCust, newCustomerPoint)) {
+                            cout << "Changes successfully applied to the database." << endl;
+                        } else {
+                            cout << "Error updating database." << endl;
+                        }
+                        delete currentCust;
+                    } else {
+                        cout << "Customer not found!" << endl;
+                    }
                 }
 
             }

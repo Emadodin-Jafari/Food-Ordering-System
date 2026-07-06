@@ -105,6 +105,27 @@ build CMakeFiles/Food_Ordering_System.dir/Database.cpp.obj: CXX_COMPILER__Food_O
   OBJECT_DIR = CMakeFiles\Food_Ordering_System.dir
   OBJECT_FILE_DIR = CMakeFiles\Food_Ordering_System.dir
 
+build CMakeFiles/Food_Ordering_System.dir/Customer.cpp.obj: CXX_COMPILER__Food_Ordering_System_unscanned_Release I$:/C++$ (Ferdowsi)/Food-Ordering-System/Customer.cpp || cmake_object_order_depends_target_Food_Ordering_System
+  CONFIG = Release
+  DEP_FILE = CMakeFiles\Food_Ordering_System.dir\Customer.cpp.obj.d
+  FLAGS = -static -static-libgcc -static-libstdc++ -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles\Food_Ordering_System.dir
+  OBJECT_FILE_DIR = CMakeFiles\Food_Ordering_System.dir
+
+build CMakeFiles/Food_Ordering_System.dir/CustomerDAO.cpp.obj: CXX_COMPILER__Food_Ordering_System_unscanned_Release I$:/C++$ (Ferdowsi)/Food-Ordering-System/CustomerDAO.cpp || cmake_object_order_depends_target_Food_Ordering_System
+  CONFIG = Release
+  DEP_FILE = CMakeFiles\Food_Ordering_System.dir\CustomerDAO.cpp.obj.d
+  FLAGS = -static -static-libgcc -static-libstdc++ -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles\Food_Ordering_System.dir
+  OBJECT_FILE_DIR = CMakeFiles\Food_Ordering_System.dir
+
+build CMakeFiles/Food_Ordering_System.dir/MembershipLevel.cpp.obj: CXX_COMPILER__Food_Ordering_System_unscanned_Release I$:/C++$ (Ferdowsi)/Food-Ordering-System/MembershipLevel.cpp || cmake_object_order_depends_target_Food_Ordering_System
+  CONFIG = Release
+  DEP_FILE = CMakeFiles\Food_Ordering_System.dir\MembershipLevel.cpp.obj.d
+  FLAGS = -static -static-libgcc -static-libstdc++ -O3 -DNDEBUG -std=gnu++20 -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles\Food_Ordering_System.dir
+  OBJECT_FILE_DIR = CMakeFiles\Food_Ordering_System.dir
+
 build CMakeFiles/Food_Ordering_System.dir/sqlite3.c.obj: C_COMPILER__Food_Ordering_System_unscanned_Release I$:/C++$ (Ferdowsi)/Food-Ordering-System/sqlite3.c || cmake_object_order_depends_target_Food_Ordering_System
   CONFIG = Release
   DEP_FILE = CMakeFiles\Food_Ordering_System.dir\sqlite3.c.obj.d
@@ -120,7 +141,7 @@ build CMakeFiles/Food_Ordering_System.dir/sqlite3.c.obj: C_COMPILER__Food_Orderi
 #############################################
 # Link the executable Food_Ordering_System.exe
 
-build Food_Ordering_System.exe: CXX_EXECUTABLE_LINKER__Food_Ordering_System_Release CMakeFiles/Food_Ordering_System.dir/main.cpp.obj CMakeFiles/Food_Ordering_System.dir/Menu.cpp.obj CMakeFiles/Food_Ordering_System.dir/MenuDAO.cpp.obj CMakeFiles/Food_Ordering_System.dir/Restaurant.cpp.obj CMakeFiles/Food_Ordering_System.dir/RestaurantDAO.cpp.obj CMakeFiles/Food_Ordering_System.dir/Order.cpp.obj CMakeFiles/Food_Ordering_System.dir/OrderDAO.cpp.obj CMakeFiles/Food_Ordering_System.dir/Database.cpp.obj CMakeFiles/Food_Ordering_System.dir/sqlite3.c.obj
+build Food_Ordering_System.exe: CXX_EXECUTABLE_LINKER__Food_Ordering_System_Release CMakeFiles/Food_Ordering_System.dir/main.cpp.obj CMakeFiles/Food_Ordering_System.dir/Menu.cpp.obj CMakeFiles/Food_Ordering_System.dir/MenuDAO.cpp.obj CMakeFiles/Food_Ordering_System.dir/Restaurant.cpp.obj CMakeFiles/Food_Ordering_System.dir/RestaurantDAO.cpp.obj CMakeFiles/Food_Ordering_System.dir/Order.cpp.obj CMakeFiles/Food_Ordering_System.dir/OrderDAO.cpp.obj CMakeFiles/Food_Ordering_System.dir/Database.cpp.obj CMakeFiles/Food_Ordering_System.dir/Customer.cpp.obj CMakeFiles/Food_Ordering_System.dir/CustomerDAO.cpp.obj CMakeFiles/Food_Ordering_System.dir/MembershipLevel.cpp.obj CMakeFiles/Food_Ordering_System.dir/sqlite3.c.obj
   CONFIG = Release
   FLAGS = -static -static-libgcc -static-libstdc++ -O3 -DNDEBUG
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32

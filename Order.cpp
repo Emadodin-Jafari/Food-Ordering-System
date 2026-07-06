@@ -7,7 +7,7 @@ using namespace std;
 OrderItem::OrderItem() {
     orderItemID = -1;
     item = nullptr;
-    orderNumber = -1;
+    orderNumber = 0;
 }
 
 
@@ -19,8 +19,8 @@ void OrderItem::setItem(menuItems &Sitem) {
     item = &Sitem;
 }
 
-void OrderItem::setOrderNumber(const int SorderNumeb) {
-    orderNumber = SorderNumeb;
+void OrderItem::setOrderNumber(const int SorderNumber) {
+    orderNumber = SorderNumber;
 }
 
 
@@ -37,8 +37,10 @@ int OrderItem::getOrderNumber() const {
 }
 
 double OrderItem::getItemTotalPrice() const {
-    return (item->getItemPrice() * orderNumber);
-}
+    if (item != nullptr) {
+        return item->getItemPrice() * orderNumber;
+    }
+    return 0.0;}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,13 +48,14 @@ double OrderItem::getItemTotalPrice() const {
 
 Order::Order() {
     orderID = -1;
-    totalPrice = -1;
+    totalPrice = 0.0;
     orderCondition = "No Condition";
+    customer = nullptr;
 }
 
 Order::~Order() {
     for (int i = 0; i < orderItems.size(); ++i) {
-        delete orderItems[i];
+        if (orderItems[i] != nullptr) delete orderItems[i];
     }
     orderItems.clear();
 }
@@ -67,6 +70,11 @@ void Order::setTotalPrice(const double StotalPrice) {
 
 void Order::setOrderCondition(const std::string SorderCondition) {
     orderCondition = SorderCondition;
+}
+
+void Order::setCustomer(Customer* Scustomer) {
+    customer = Scustomer;
+    calculateTotalPrice();
 }
 
 
@@ -86,6 +94,10 @@ string Order::getOrderCondition() const {
 
 const vector<OrderItem*>& Order::getOrderItems() const {
     return orderItems;
+}
+
+Customer* Order::getCustomer() const {
+    return customer;
 }
 
 
@@ -156,8 +168,18 @@ void Order::addItem(menuItems *menuItem, int number) {
 }
 
 void Order::calculateTotalPrice() {
-    totalPrice = 0.0;
+    double rawPrice = 0.0;
+
     for (int i = 0; i < orderItems.size(); ++i) {
-        totalPrice += orderItems[i]->getItemTotalPrice();
+        if (orderItems[i] != nullptr) {
+            rawPrice += orderItems[i]->getItemTotalPrice();
+        }
+    }
+
+    if (customer != nullptr) {
+
+        totalPrice = customer->applyDiscount(rawPrice);
+    } else {
+        totalPrice = rawPrice;
     }
 }

@@ -2,6 +2,7 @@
 #define ORDER_H
 #include "Restaurant.h"
 #include "Menu.h"
+#include "Customer.h"
 #include <string>
 #include <vector>
 
@@ -15,7 +16,7 @@ public:
 
     void setOrderItemID(const int SorderItemID);
     void setItem(menuItems &Sitem);
-    void setOrderNumber(const int SorderNumeb);
+    void setOrderNumber(const int SorderNumber);
 
     int getOrderItemID() const;
     menuItems* getItem() const;
@@ -38,11 +39,15 @@ public:
     void setOrderID(const int SorderID);
     void setTotalPrice(const double StotalPrice);
     void setOrderCondition(const string SorderCondition);
+    void setCustomer(Customer* Scustomer);
+
 
     int getOrderID() const;
     double getTotalPrice() const;
     string getOrderCondition() const;
     const vector<OrderItem*>& getOrderItems() const;
+    Customer* getCustomer() const;
+
 
     void updateOrderNumber(int itemId, int newNumber);
     void removeItem(int itemId);
@@ -56,6 +61,7 @@ private:
     double totalPrice;
     string orderCondition;
     vector<OrderItem*> orderItems;
+    Customer* customer;
 };
 
 
