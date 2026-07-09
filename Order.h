@@ -40,14 +40,18 @@ public:
     void setTotalPrice(const double StotalPrice);
     void setOrderCondition(const string SorderCondition);
     void setCustomer(Customer* Scustomer);
-
+    void setRestaurantName(const string& SrestaurantName);
+    void setOrderPoints(int SorderPoints);
+    void setFinalPaidPrice(double SfinalPaidPrice);
 
     int getOrderID() const;
     double getTotalPrice() const;
     string getOrderCondition() const;
     const vector<OrderItem*>& getOrderItems() const;
     Customer* getCustomer() const;
-
+    string getRestaurantName() const;
+    int getOrderPoints() const;
+    double getFinalPaidPrice() const;
 
     void updateOrderNumber(int itemId, int newNumber);
     void removeItem(int itemId);
@@ -62,6 +66,11 @@ private:
     string orderCondition;
     vector<OrderItem*> orderItems;
     Customer* customer;
+    string restaurantName;
+    int orderPoints;
+    double finalPaidPrice;
+    double deliveryFee;
+
 };
 
 

@@ -51,6 +51,9 @@ Order::Order() {
     totalPrice = 0.0;
     orderCondition = "No Condition";
     customer = nullptr;
+    orderPoints = 0;
+    finalPaidPrice = 0.0;
+    deliveryFee = 0.0;
 }
 
 Order::~Order() {
@@ -77,6 +80,18 @@ void Order::setCustomer(Customer* Scustomer) {
     calculateTotalPrice();
 }
 
+void Order::setRestaurantName(const std::string &SrestaurantName) {
+    restaurantName = SrestaurantName;
+}
+
+
+void Order::setOrderPoints(int SorderPoints) {
+    orderPoints = SorderPoints;
+}
+
+void Order::setFinalPaidPrice(double SfinalPaidPrice) {
+    finalPaidPrice = SfinalPaidPrice;
+}
 
 
 int Order::getOrderID() const {
@@ -100,6 +115,17 @@ Customer* Order::getCustomer() const {
     return customer;
 }
 
+string Order::getRestaurantName() const {
+    return restaurantName;
+}
+
+int Order::getOrderPoints() const {
+    return orderPoints;
+}
+
+double Order::getFinalPaidPrice() const {
+    return finalPaidPrice;
+}
 
 void Order::removeItem(int itemId) {
     bool findOrderItem = false;

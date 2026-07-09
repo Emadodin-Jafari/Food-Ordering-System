@@ -23,7 +23,11 @@ bool Database::createTables() {
             "CREATE TABLE IF NOT EXISTS Orders ("
             "OrderID INTEGER PRIMARY KEY AUTOINCREMENT, "
             "TotalPrice REAL NOT NULL, "
-            "Condition TEXT NOT NULL);";
+            "Condition TEXT NOT NULL, "
+            "CustomerID INTEGER, "
+            "EarnedPoints INTEGER DEFAULT 0, "
+            "FinalPaid REAL DEFAULT 0.0, "
+            "FOREIGN KEY (CustomerID) REFERENCES Customers(id) ON DELETE SET NULL);";
 
     rc = sqlite3_exec(db, createOrdersTable.c_str(), nullptr, nullptr, &errMsg);
     if (rc != SQLITE_OK) {
@@ -85,7 +89,6 @@ bool Database::createTables() {
         sqlite3_free(errMsg);
         return false;
     }
-
 
     string sqlCustomers =
             "CREATE TABLE IF NOT EXISTS Customers ("

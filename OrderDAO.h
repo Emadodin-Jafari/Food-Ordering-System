@@ -21,6 +21,9 @@ public:
     bool updateOrderCondition(int orderId, const std::string& newCondition);
     bool adminUpdateCustomerPoints(Customer* customer, int newPoints);
     void printInvoice(const Order& order);
+    vector<Order*> getCustomerOrders(int customerId);
+    vector<Order*> getRestaurantOrders(int restaurantId);
+    Order* getOrderById(int orderId);
 };
 
 #endif

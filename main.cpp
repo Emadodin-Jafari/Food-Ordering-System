@@ -269,6 +269,44 @@ int main() {
                 cout << "Press 0 to Log Out and return to Main Menu." << endl;
                 cout << "-------------------------------------------" << endl;
 
+
+
+                ///////////////////////////////////////Show Customer Information///////////////////////////////////////
+
+                cout << "Customer ID : " << currentCustomer->getCustomerID() << endl;
+                cout << "Customer Name : " << currentCustomer->getCustomerName() << endl;
+                cout << "Customer Phone Number : " << currentCustomer->getCustomerPhoneNumber() << endl;
+                cout << "Customer Level : " << currentCustomer->getCustomerLevel() << endl;
+                cout << "Customer Points : " << currentCustomer->getCustomerPoints() << endl;
+
+                string currentLevel = currentCustomer->getCustomerLevel();
+                int currentPoints = currentCustomer->getCustomerPoints();
+
+
+                if (currentLevel == "Normal") {
+                    int nextLevelPoints = 100 - currentPoints;
+                    if (nextLevelPoints < 0) nextLevelPoints = 0;
+                    cout << ">> You need " << nextLevelPoints << " more points to upgrade to (Silver)! <<" << endl;
+                }
+                else if (currentLevel == "Silver") {
+                    int nextLevelPoints = 300 - currentPoints;
+                    if (nextLevelPoints < 0) nextLevelPoints = 0;
+                    cout << ">> You need " << nextLevelPoints << " more points to upgrade to (Gold)! <<" << endl;
+                }
+                else if (currentLevel == "Gold") {
+                    int nextLevelPoints = 600 - currentPoints;
+                    if (nextLevelPoints < 0) nextLevelPoints = 0;
+                    cout << ">> You need " << nextLevelPoints << " more points to upgrade to (VIP)! <<" << endl;
+                }
+                else if (currentLevel == "VIP") {
+                    cout << ">>You are at the highest level (VIP Member)! <<" << endl;
+                }
+
+                cout << "=========================================" << endl;
+                cout << "Press Enter.";
+                cin.ignore(10000, '\n');
+                cin.get();
+
                 ///////////////////////////////////////Show Active restaurants//////////////////////////////////////////
                 vector<Restaurant> allActiveRestaurantsToShow = restaurantDao.getAllRestaurants();
                 bool foundAnyActiveRestaurant = false;
@@ -328,7 +366,10 @@ int main() {
                         cout << "Press 101 to add to order." << endl;
                         cout << "Press 102 to change number of order." << endl;
                         cout << "Press 103 to remove item from order list." << endl;
-                        cout << "Press 104 to show order list." << endl;
+                        cout << "Press 104 to show Current order list." << endl;
+                        cout << "Press 105 to show all order lists." << endl;
+                        cout << "Press 106 to cancel order." << endl;
+
 
                         cout << "Total Price: " << customerOrder->getTotalPrice() << endl;
                         cout << "----------------------------------------------------------------" << endl;
@@ -341,27 +382,25 @@ int main() {
                         else if (orderChoice == 100) {
                             if (customerOrder->getOrderItems().empty()) {
                                 cout << "Your order list is empty! Cannot complete an empty order." << endl;
-                                cin.ignore();
-                                cin.get();
+                                cin.ignore(); cin.get();
                                 continue;
                             }
                             cout << "Order completed." << endl;
                             customerOrder->setOrderCondition("Pending");
 
-                            //customerOrder->setCustomer(currentCustomer);
-                            orderDao.addOrder(*customerOrder);
-                            //orderDao.printInvoice(*customerOrder);
+                            customerOrder->setCustomer(currentCustomer);
 
-                            cout << "\nPress Enter to continue.";
-                            cin.ignore();
-                            cin.get();
+                            orderDao.addOrder(*customerOrder);
+                            orderDao.printInvoice(*customerOrder);
+
+                            cout << "Press Enter to continue.";
+                            cin.ignore(); cin.get();
 
                             customerOrder->setCustomer(nullptr);
                             break;
                         }
                         else if (orderChoice == 101) {
                             menuItems *selectedItem = nullptr;
-
                             cout << "Enter item ID to add: ";
                             selectOrder = getValidatedInt();
                             cout << "Enter quantity: ";
@@ -415,21 +454,150 @@ int main() {
                             cin.ignore();
                             cin.get();
                         }
+
+
+                        else if (orderChoice == 105) {
+                            clearScreen();
+
+                            auto myOrders = orderDao.getCustomerOrders(currentCustomer->getCustomerID());
+
+                            if (myOrders.empty()) {
+                                cout << "You haven't placed any orders yet!" << endl;
+                            }
+                            else {
+                                for (int i = 0; i < myOrders.size(); ++i) {
+                                    cout << "Order ID: " << myOrders[i]->getOrderID()
+                                         << " | Status: " << myOrders[i]->getOrderCondition()
+                                         << " | Total Price: $" << myOrders[i]->getTotalPrice()
+                                         << " | Restaurant`s name : " << myOrders[i]->getRestaurantName() << endl;
+
+                                    cout << "Items purchased:" << endl;
+
+                                    const auto& items = myOrders[i]->getOrderItems();
+                                    for (size_t j = 0; j < items.size(); ++j) {
+                                        if (items[j] != nullptr && items[j]->getItem() != nullptr) {
+                                            cout << "  - " << items[j]->getItem()->getItemName()
+                                                 << " (x" << items[j]->getOrderNumber() << ")" << endl;
+                                        }
+                                    }
+                                    cout << "----------------------------------------" << endl;
+                                }
+
+                            }
+
+                            for (int i = 0; i < myOrders.size(); ++i) {
+                                if (myOrders[i] != nullptr) {
+                                    const auto& items = myOrders[i]->getOrderItems();
+                                    for (size_t j = 0; j < items.size(); ++j) {
+                                        if (items[j] != nullptr) {
+                                            if (items[j]->getItem() != nullptr) {
+                                                delete items[j]->getItem();
+                                            }
+                                            delete items[j];
+                                        }
+                                    }
+                                }
+                            }
+                            myOrders.clear();
+
+                            cout << "Press Enter to return." << endl;
+                            cin.ignore(10000, '\n');
+                            cin.get();
+                        }
+
+                        else if(orderChoice == 106){
+                            int orderIdToCancel = -1;
+                            clearScreen();
+
+                            auto myOrders = orderDao.getCustomerOrders(currentCustomer->getCustomerID());
+
+                            if (myOrders.empty()) {
+                                cout << "You haven't placed any orders yet!" << endl;
+                            }
+                            else {
+                                for (int i = 0; i < myOrders.size(); ++i) {
+                                    cout << "Order ID: " << myOrders[i]->getOrderID()
+                                         << " | Status: " << myOrders[i]->getOrderCondition()
+                                         << " | Total Price: $" << myOrders[i]->getTotalPrice()
+                                         << " | Restaurant`s name : " << myOrders[i]->getRestaurantName() << endl;
+
+                                    cout << "Items purchased:" << endl;
+
+                                    const auto& items = myOrders[i]->getOrderItems();
+                                    for (size_t j = 0; j < items.size(); ++j) {
+                                        if (items[j] != nullptr && items[j]->getItem() != nullptr) {
+                                            cout << "  - " << items[j]->getItem()->getItemName()
+                                                 << " (x" << items[j]->getOrderNumber() << ")" << endl;
+                                        }
+                                    }
+                                    cout << "----------------------------------------" << endl;
+                                }
+
+                            }
+
+                            for (int i = 0; i < myOrders.size(); ++i) {
+                                if (myOrders[i] != nullptr) {
+                                    const auto& items = myOrders[i]->getOrderItems();
+                                    for (size_t j = 0; j < items.size(); ++j) {
+                                        if (items[j] != nullptr) {
+                                            if (items[j]->getItem() != nullptr) {
+                                                delete items[j]->getItem();
+                                            }
+                                            delete items[j];
+                                        }
+                                    }
+                                }
+                            }
+                            myOrders.clear();
+
+
+
+                            /////////////////////////////////////////Cancel Order//////////////////////////////////////
+
+
+                            cout << "Enter Order ID : " << endl;
+                            orderIdToCancel = getValidatedInt();
+                            Order* customerOrderToCancel = orderDao.getOrderById(orderIdToCancel);
+
+                            if(customerOrderToCancel == nullptr){
+                                cout << "There is no order with id : " << orderIdToCancel << endl;
+                            }
+
+                            else{
+                                customerOrderToCancel->setCustomer(currentCustomer);
+                                orderDao.cancelOrder(*customerOrderToCancel);
+                                cout << "Order " << orderIdToCancel << " has been successfully canceled." << endl;
+                            }
+
+
+                            delete customerOrderToCancel;
+
+
+
+                            cout << "Press Enter to return." << endl;
+                            cin.ignore(10000, '\n');
+                            cin.get();
+                        }
+
+
                         else {
                             cout << "Invalid number!" << endl;
                         }
                     }
 
-                    for (size_t i = 0; i < loadedMenu.size(); ++i) {
-                        if (loadedMenu[i] != nullptr) delete loadedMenu[i];
-                    }
-                    loadedMenu.clear();
 
                     if (customerOrder != nullptr) {
                         delete customerOrder;
+                        customerOrder = nullptr;
                     }
+
+
+
+                    loadedMenu.clear();
+
                     if (chooseResInCustomerMenu != nullptr) {
                         delete chooseResInCustomerMenu;
+                        chooseResInCustomerMenu = nullptr;
                     }
                 }
             }
@@ -518,7 +686,7 @@ int main() {
                         cout << "Press 201 to add item to menu. " << endl;
                         cout << "Press 202 to delete item from menu. " << endl;
                         cout << "Press 203 to edit menu items." << endl;
-                        cout << "Press 204 to show order list." << endl;
+                        cout << "Press 204 to show all order lists." << endl;
                         cout << "Press 205 to edit condition." << endl;
 
                         resManagerChoice = getValidatedInt();
@@ -665,10 +833,10 @@ int main() {
                         else if(resManagerChoice == 204){
                             clearScreen();
 
-                            auto allOrders = orderDao.getAllOrders();
+                            auto allOrders = orderDao.getRestaurantOrders(chooseResInRestaurantManagerMenu->getID());
 
                             if(allOrders.empty()){
-                                cout << "No orders found in database!" << endl;
+                                cout << "No orders found for your restaurant!" << endl;
                             }
                             else {
                                 for(int i = 0; i < allOrders.size(); ++i) {
@@ -676,16 +844,22 @@ int main() {
                                          << " | Condition: " << allOrders[i]->getOrderCondition()
                                          << " | Total Price: " << allOrders[i]->getTotalPrice() << endl;
 
+                                    cout << "Items to prepare:" << endl;
+                                    const auto& items = allOrders[i]->getOrderItems();
+                                    for (size_t j = 0; j < items.size(); ++j) {
+                                        if (items[j] != nullptr && items[j]->getItem() != nullptr) {
+                                            cout << "  - " << items[j]->getItem()->getItemName()
+                                                 << " (x" << items[j]->getOrderNumber() << ")" << endl;
+                                        }
+                                    }
                                     cout << "----------------------------------------" << endl;
                                 }
                             }
 
-                            for(int i = 0; i < allOrders.size(); ++i) {
-                                delete allOrders[i];
-                            }
                             allOrders.clear();
 
                             cout << "Press Enter to return." << endl;
+                            cin.ignore(10000, '\n');
                             cin.get();
                         }
 
@@ -1145,6 +1319,11 @@ int main() {
                     } else {
                         cout << "Customer not found!" << endl;
                     }
+
+                    cout << "Press Enter." << endl;
+                    cin.ignore();
+                    cin.get();
+
                 }
 
             }
