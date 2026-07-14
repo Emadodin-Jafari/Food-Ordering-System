@@ -19,34 +19,18 @@ bool Database::createTables() {
     char* errMsg = nullptr;
     int rc;
 
-    string createOrdersTable =
-            "CREATE TABLE IF NOT EXISTS Orders ("
-            "OrderID INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "TotalPrice REAL NOT NULL, "
-            "Condition TEXT NOT NULL, "
-            "CustomerID INTEGER, "
-            "EarnedPoints INTEGER DEFAULT 0, "
-            "FinalPaid REAL DEFAULT 0.0, "
-            "FOREIGN KEY (CustomerID) REFERENCES Customers(id) ON DELETE SET NULL);";
+    string sqlCustomers =
+            "CREATE TABLE IF NOT EXISTS Customers ("
+            "id INTEGER PRIMARY KEY, "
+            "name TEXT NOT NULL, "
+            "phoneNumber TEXT, "
+            "points INTEGER DEFAULT 0, "
+            "current_level TEXT DEFAULT 'Normal' "
+            ");";
 
-    rc = sqlite3_exec(db, createOrdersTable.c_str(), nullptr, nullptr, &errMsg);
+    rc = sqlite3_exec(db, sqlCustomers.c_str(), nullptr, nullptr, &errMsg);
     if (rc != SQLITE_OK) {
-        cerr << "SQL error (Orders Table): " << errMsg << endl;
-        sqlite3_free(errMsg);
-        return false;
-    }
-
-    string createOrderItemsTable =
-            "CREATE TABLE IF NOT EXISTS Order_Items ("
-            "OrderID INTEGER, "
-            "ItemID INTEGER, "
-            "Quantity INTEGER NOT NULL, "
-            "PRIMARY KEY (OrderID, ItemID), "
-            "FOREIGN KEY (OrderID) REFERENCES Orders(OrderID) ON DELETE CASCADE);";
-
-    rc = sqlite3_exec(db, createOrderItemsTable.c_str(), nullptr, nullptr, &errMsg);
-    if (rc != SQLITE_OK) {
-        cerr << "SQL error (OrderItems Table): " << errMsg << endl;
+        cerr << "Error creating Customers table: " << errMsg << endl;
         sqlite3_free(errMsg);
         return false;
     }
@@ -90,18 +74,66 @@ bool Database::createTables() {
         return false;
     }
 
-    string sqlCustomers =
-            "CREATE TABLE IF NOT EXISTS Customers ("
-            "id INTEGER PRIMARY KEY, "
-            "name TEXT NOT NULL, "
-            "phoneNumber TEXT, "
-            "points INTEGER DEFAULT 0, "
-            "current_level TEXT DEFAULT 'Normal' "
-            ");";
+    string createCouponsTable =
+            "CREATE TABLE IF NOT EXISTS Coupons ("
+            "CouponID INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "CustomerID INTEGER, "
+            "AllocatedMonth TEXT, "
+            "IsUsed INTEGER DEFAULT 0, "
+            "FOREIGN KEY (CustomerID) REFERENCES Customers(id) ON DELETE CASCADE);";
 
-    rc = sqlite3_exec(db, sqlCustomers.c_str(), nullptr, nullptr, &errMsg);
+    rc = sqlite3_exec(db, createCouponsTable.c_str(), nullptr, nullptr, &errMsg);
     if (rc != SQLITE_OK) {
-        cerr << "Error creating Customers table: " << errMsg << endl;
+        cerr << "SQL error (Coupons Table): " << errMsg << endl;
+        sqlite3_free(errMsg);
+        return false;
+    }
+
+    string createLevelHistoryTable =
+            "CREATE TABLE IF NOT EXISTS LevelHistory ("
+            "HistoryID INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "CustomerID INTEGER, "
+            "OldLevel TEXT, "
+            "NewLevel TEXT, "
+            "ChangeDate TEXT DEFAULT (datetime('now', 'localtime')), "
+            "FOREIGN KEY (CustomerID) REFERENCES Customers(id) ON DELETE CASCADE);";
+
+    rc = sqlite3_exec(db, createLevelHistoryTable.c_str(), nullptr, nullptr, &errMsg);
+    if (rc != SQLITE_OK) {
+        cerr << "SQL error (LevelHistory Table): " << errMsg << endl;
+        sqlite3_free(errMsg);
+        return false;
+    }
+
+    string createOrdersTable =
+            "CREATE TABLE IF NOT EXISTS Orders ("
+            "OrderID INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "TotalPrice REAL NOT NULL, "
+            "Condition TEXT NOT NULL, "
+            "CustomerID INTEGER, "
+            "EarnedPoints INTEGER DEFAULT 0, "
+            "FinalPaid REAL DEFAULT 0.0, "
+            "DeliveryFee REAL DEFAULT 0.0, "
+            "FOREIGN KEY (CustomerID) REFERENCES Customers(id) ON DELETE SET NULL);";
+
+    rc = sqlite3_exec(db, createOrdersTable.c_str(), nullptr, nullptr, &errMsg);
+    if (rc != SQLITE_OK) {
+        cerr << "SQL error (Orders Table): " << errMsg << endl;
+        sqlite3_free(errMsg);
+        return false;
+    }
+
+    string createOrderItemsTable =
+            "CREATE TABLE IF NOT EXISTS Order_Items ("
+            "OrderID INTEGER, "
+            "ItemID INTEGER, "
+            "Quantity INTEGER NOT NULL, "
+            "PRIMARY KEY (OrderID, ItemID), "
+            "FOREIGN KEY (OrderID) REFERENCES Orders(OrderID) ON DELETE CASCADE);";
+
+    rc = sqlite3_exec(db, createOrderItemsTable.c_str(), nullptr, nullptr, &errMsg);
+    if (rc != SQLITE_OK) {
+        cerr << "SQL error (OrderItems Table): " << errMsg << endl;
         sqlite3_free(errMsg);
         return false;
     }

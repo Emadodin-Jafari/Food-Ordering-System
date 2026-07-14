@@ -43,6 +43,7 @@ public:
     void setRestaurantName(const string& SrestaurantName);
     void setOrderPoints(int SorderPoints);
     void setFinalPaidPrice(double SfinalPaidPrice);
+    void setDeliveryFee(double SdeliveryFee);
 
     int getOrderID() const;
     double getTotalPrice() const;
@@ -52,6 +53,7 @@ public:
     string getRestaurantName() const;
     int getOrderPoints() const;
     double getFinalPaidPrice() const;
+    double getDeliveryFee() const;
 
     void updateOrderNumber(int itemId, int newNumber);
     void removeItem(int itemId);

@@ -270,6 +270,8 @@ int main() {
                 cout << "-------------------------------------------" << endl;
 
 
+                orderDao.checkAndAllocateMonthlyCoupons(currentCustomer->getCustomerID(), currentCustomer->getCustomerLevel());
+                int coupons = orderDao.getActiveCouponsCount(currentCustomer->getCustomerID());
 
                 ///////////////////////////////////////Show Customer Information///////////////////////////////////////
 
@@ -278,6 +280,7 @@ int main() {
                 cout << "Customer Phone Number : " << currentCustomer->getCustomerPhoneNumber() << endl;
                 cout << "Customer Level : " << currentCustomer->getCustomerLevel() << endl;
                 cout << "Customer Points : " << currentCustomer->getCustomerPoints() << endl;
+                cout << "Customer Coupons: " << coupons << " coupon(s)" << endl;
 
                 string currentLevel = currentCustomer->getCustomerLevel();
                 int currentPoints = currentCustomer->getCustomerPoints();
@@ -313,7 +316,7 @@ int main() {
                 if (allActiveRestaurantsToShow.empty()) {
                     cout << "There is no restaurant!" << endl;
                 } else {
-                    for (size_t i = 0; i < allActiveRestaurantsToShow.size(); ++i) {
+                    for (int i = 0; i < allActiveRestaurantsToShow.size(); ++i) {
                         if (allActiveRestaurantsToShow[i].getInActive() == true) {
                             cout << "ID : " << allActiveRestaurantsToShow[i].getID() << endl;
                             cout << "Name : " << allActiveRestaurantsToShow[i].getName() << endl;
@@ -431,17 +434,29 @@ int main() {
                                 cin.ignore(10000, '\n');
                                 cin.get();
                             }
-                        } else if (orderChoice == 102) {
-                            cout << "Enter item ID to update order: " << endl;
-                            selectOrder = getValidatedInt();
-                            cout << "Enter item quantity to update order : " << endl;
-                            orderNum = getValidatedInt();
+                        }
+                        else if (orderChoice == 102) {
+                            if (customerOrder != nullptr && customerOrder->getOrderID() <= 0) {
+                                cout << "Enter item ID to update order: " << endl;
+                                selectOrder = getValidatedInt();
+                                cout << "Enter item quantity to update order : " << endl;
+                                orderNum = getValidatedInt();
 
-                            customerOrder->updateOrderNumber(selectOrder, orderNum);
-                        } else if (orderChoice == 103) {
-                            cout << "Enter item ID to remove from order list : " << endl;
-                            selectOrder = getValidatedInt();
-                            customerOrder->removeItem(selectOrder);
+                                customerOrder->updateOrderNumber(selectOrder, orderNum);
+                                cout << "Order updated." << endl;
+                            } else {
+                                cout << "Error: This order has already been finalized and registered. You cannot modify item quantities!" << endl;
+                            }
+                        }
+                        else if (orderChoice == 103) {
+                            if (customerOrder != nullptr && customerOrder->getOrderID() <= 0) {
+                                cout << "Enter item ID to remove from order list : " << endl;
+                                selectOrder = getValidatedInt();
+                                customerOrder->removeItem(selectOrder);
+                                cout << "Item removed from your draft order." << endl;
+                            } else {
+                                cout << "Error: This order has already been finalized and registered. You can only cancel the entire order!" << endl;
+                            }
                         }
                         else if (orderChoice == 104) {
                             clearScreen();
@@ -468,7 +483,7 @@ int main() {
                                 for (int i = 0; i < myOrders.size(); ++i) {
                                     cout << "Order ID: " << myOrders[i]->getOrderID()
                                          << " | Status: " << myOrders[i]->getOrderCondition()
-                                         << " | Total Price: $" << myOrders[i]->getTotalPrice()
+                                         << " | Total Price: $" << myOrders[i]->getFinalPaidPrice()
                                          << " | Restaurant`s name : " << myOrders[i]->getRestaurantName() << endl;
 
                                     cout << "Items purchased:" << endl;
@@ -518,7 +533,7 @@ int main() {
                                 for (int i = 0; i < myOrders.size(); ++i) {
                                     cout << "Order ID: " << myOrders[i]->getOrderID()
                                          << " | Status: " << myOrders[i]->getOrderCondition()
-                                         << " | Total Price: $" << myOrders[i]->getTotalPrice()
+                                         << " | Total Price: $" << myOrders[i]->getFinalPaidPrice()
                                          << " | Restaurant`s name : " << myOrders[i]->getRestaurantName() << endl;
 
                                     cout << "Items purchased:" << endl;
@@ -842,7 +857,7 @@ int main() {
                                 for(int i = 0; i < allOrders.size(); ++i) {
                                     cout << "Order ID: " << allOrders[i]->getOrderID()
                                          << " | Condition: " << allOrders[i]->getOrderCondition()
-                                         << " | Total Price: " << allOrders[i]->getTotalPrice() << endl;
+                                         << " | Total Price: " << allOrders[i]->getFinalPaidPrice() << endl;
 
                                     cout << "Items to prepare:" << endl;
                                     const auto& items = allOrders[i]->getOrderItems();
@@ -866,70 +881,78 @@ int main() {
                         else if(resManagerChoice == 205){
                             clearScreen();
 
-                            auto allOrders = orderDao.getAllOrders();
+                            auto allOrders = orderDao.getRestaurantOrders(restaurantManagerChoice);
 
                             if(allOrders.empty()){
-                                cout << "No orders found in database!" << endl;
+                                cout << "No orders found for your restaurant!" << endl;
                             }
+                            else {
+                                cout << "=== Active Orders for Your Restaurant ===" << endl;
+                                for (size_t i = 0; i < allOrders.size(); ++i) {
+                                    cout << "Order ID: " << allOrders[i]->getOrderID()
+                                         << " | Total: $" << allOrders[i]->getFinalPaidPrice()
+                                         << " | Condition: [" << allOrders[i]->getOrderCondition() << "]" << endl;
+                                }
+                                cout << "=========================================" << endl;
 
-                            else{
-                                int orderIdToChangeCondition = -1 , changingCondition = -1;
+                                int orderIdToChangeCondition = -1, changingCondition = -1;
                                 bool updateCondition = false;
-                                cout << "Enter order ID to change condition : " << endl;
+
+                                cout << "Enter order ID to change condition: " << endl;
                                 orderIdToChangeCondition = getValidatedInt();
-                                cout << "Press 2051 to change condition to <<In preparation>>." << endl;
-                                cout << "Press 2052 to change condition to <<Ready to send>>." << endl;
-                                cout << "Press 2053 to change condition to <<Delivered>>." << endl;
-                                changingCondition = getValidatedInt();
 
-                                if(changingCondition == 2051){
-                                    for (int i = 0; i < allOrders.size(); ++i) {
-                                        if(allOrders[i]->getOrderID() == orderIdToChangeCondition){
-                                            allOrders[i]->setOrderCondition("In preparation");
-                                            orderDao.updateOrderCondition(orderIdToChangeCondition , "In preparation");
-                                            updateCondition = true;
-                                            break;
-                                        }
+                                bool belongsToThisRestaurant = false;
+                                for (size_t i = 0; i < allOrders.size(); ++i) {
+                                    if (allOrders[i]->getOrderID() == orderIdToChangeCondition) {
+                                        belongsToThisRestaurant = true;
+                                        break;
                                     }
                                 }
 
-                                else if(changingCondition == 2052){
-                                    for (int i = 0; i < allOrders.size(); ++i) {
-                                        if(allOrders[i]->getOrderID() == orderIdToChangeCondition){
-                                            allOrders[i]->setOrderCondition("Ready to send");
-                                            orderDao.updateOrderCondition(orderIdToChangeCondition , "Ready to send");
-                                            updateCondition = true;
-                                            break;
-                                        }
-                                    }
+                                if (!belongsToThisRestaurant) {
+                                    cout << "Error: This order ID does not belong to your restaurant or doesn't exist!" << endl;
                                 }
-
-                                else if(changingCondition == 2053){
-                                    for (int i = 0; i < allOrders.size(); ++i) {
-                                        if(allOrders[i]->getOrderID() == orderIdToChangeCondition){
-                                            allOrders[i]->setOrderCondition("Delivered");
-                                            orderDao.updateOrderCondition(orderIdToChangeCondition , "Delivered");
-                                            updateCondition = true;
-                                            break;
-                                        }
-                                    }
-                                }
-
                                 else {
-                                    cout << "Wrong condition!" << endl;
+                                    cout << "Press 2051 to change condition to <<In preparation>>." << endl;
+                                    cout << "Press 2052 to change condition to <<Ready to send>>." << endl;
+                                    cout << "Press 2053 to change condition to <<Delivered>>." << endl;
+                                    changingCondition = getValidatedInt();
+
+                                    string newCondition = "";
+                                    if (changingCondition == 2051) {
+                                        newCondition = "In preparation";
+                                    } else if (changingCondition == 2052) {
+                                        newCondition = "Ready to send";
+                                    } else if (changingCondition == 2053) {
+                                        newCondition = "Delivered";
+                                    } else {
+                                        cout << "Wrong condition choice!" << endl;
+                                    }
+
+                                    if (!newCondition.empty()) {
+                                        for (size_t i = 0; i < allOrders.size(); ++i) {
+                                            if (allOrders[i]->getOrderID() == orderIdToChangeCondition) {
+                                                allOrders[i]->setOrderCondition(newCondition);
+                                                orderDao.updateOrderCondition(orderIdToChangeCondition, newCondition);
+                                                updateCondition = true;
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
 
                                 if(updateCondition){
-                                    cout << "Condition updated." << endl;
+                                    cout << "Condition updated successfully!" << endl;
                                 }
-
-
                             }
 
-                            for (int i = 0; i < allOrders.size(); ++i) {
+                            for (size_t i = 0; i < allOrders.size(); ++i) {
                                 if (allOrders[i] != nullptr) delete allOrders[i];
                             }
                             allOrders.clear();
+
+                            cout << "Press Enter." << endl;
+                            cin.ignore(); cin.get();
                         }
 
 
@@ -983,6 +1006,9 @@ int main() {
                 cout << "Press 307 for delete restaurant`s menu item." << endl;
                 cout << "Press 308 for add restaurant`s menu item." << endl;
                 cout << "Press 309 for change customer point and level." << endl;
+                cout << "Press 310 for show user level change history." << endl;
+                cout << "Press 311 for show number of users at each level." << endl;
+                cout << "Press 312 for show all customers with details." << endl;
                 systemManagerChoice = getValidatedInt();
 
                 if (systemManagerChoice == 0) {
@@ -1104,22 +1130,26 @@ int main() {
                     clearScreen();
                     long double totalSales = 0;
                     int orderNumber = -1;
+                    int totalCustomers = 0;
 
                     auto allOrders = orderDao.getAllOrders();
+                    totalCustomers = orderDao.getCustomerCount();
 
                     if(allOrders.empty()){
                         cout << "No orders found in database!" << endl;
+                        cout << "Total Customers registered: " << totalCustomers << endl;
                     }
-
                     else {
                         for (int i = 0; i < allOrders.size(); ++i) {
                             totalSales += allOrders[i]->getTotalPrice();
                         }
                         orderNumber = allOrders.size();
 
-
-                        cout << "Total Sales is : " << totalSales << endl;
-                        cout << "Number of orders is : "<< orderNumber << endl;
+                        cout << "================== SYSTEM STATISTICS ==================" << endl;
+                        cout << "Total Sales is : $" << totalSales << endl;
+                        cout << "Number of orders is : " << orderNumber << endl;
+                        cout << "Total Customers registered is : " << totalCustomers << endl;
+                        cout << "=======================================================" << endl;
                     }
 
                     for(int i = 0; i < allOrders.size(); ++i) {
@@ -1130,8 +1160,7 @@ int main() {
                     allOrders.clear();
 
                     cout << "Press Enter." <<endl;
-                    cin.ignore() ; cin.get();
-
+                    cin.ignore(); cin.get();
                 }
 
 ///////////////////////////////////////////////////////////////Delete Restaurant////////////////////////////////////////
@@ -1324,6 +1353,34 @@ int main() {
                     cin.ignore();
                     cin.get();
 
+                }
+
+                else if(systemManagerChoice == 310){
+                    int customerTargetId;
+                    cout << "Enter Customer ID : " << endl;
+
+                    customerTargetId = getValidatedInt();
+
+                    orderDao.printLevelHistory(customerTargetId);
+
+                    cout << "---------------------------------------------------\nPlease Enter." << endl;
+                    cin.ignore();
+                    cin.get();
+
+                }
+
+                else if(systemManagerChoice == 311){
+                    orderDao.printCustomerCountPerLevel();
+                    cout << "---------------------------------------------------\nPlease Enter." << endl;
+                    cin.ignore();
+                    cin.get();
+                }
+
+                else if(systemManagerChoice == 312){
+                    orderDao.printAllCustomersWithDetails();
+                    cout << "---------------------------------------------------\nPlease Enter." << endl;
+                    cin.ignore();
+                    cin.get();
                 }
 
             }

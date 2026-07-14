@@ -93,6 +93,9 @@ void Order::setFinalPaidPrice(double SfinalPaidPrice) {
     finalPaidPrice = SfinalPaidPrice;
 }
 
+void Order::setDeliveryFee(double SdeliveryFee) {
+    deliveryFee = SdeliveryFee;
+}
 
 int Order::getOrderID() const {
     return orderID;
@@ -125,6 +128,10 @@ int Order::getOrderPoints() const {
 
 double Order::getFinalPaidPrice() const {
     return finalPaidPrice;
+}
+
+double Order::getDeliveryFee() const {
+    return deliveryFee;
 }
 
 void Order::removeItem(int itemId) {

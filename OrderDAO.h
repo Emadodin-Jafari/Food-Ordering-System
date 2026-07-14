@@ -24,6 +24,15 @@ public:
     vector<Order*> getCustomerOrders(int customerId);
     vector<Order*> getRestaurantOrders(int restaurantId);
     Order* getOrderById(int orderId);
-};
+
+    bool logLevelChange(sqlite3* db, int customerId, const string& oldLevel, const string& newLevel);
+    void printLevelHistory(int customerId);
+    void printCustomerCountPerLevel();
+
+    void checkAndAllocateMonthlyCoupons(int customerId, const string& level);
+    int getActiveCouponsCount(int customerId);
+    void printAllCustomersWithDetails();
+    int getCustomerCount();
+    };
 
 #endif
