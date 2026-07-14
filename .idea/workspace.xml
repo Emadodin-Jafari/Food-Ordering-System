@@ -24,21 +24,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e2c82dac-297f-409b-aa47-8f9712f8c12c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Customer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Customer.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Customer.h" beforeDir="false" afterPath="$PROJECT_DIR$/Customer.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MembershipLevel.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/MembershipLevel.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MembershipLevel.h" beforeDir="false" afterPath="$PROJECT_DIR$/MembershipLevel.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderDAO.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/OrderDAO.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/OrderDAO.h" beforeDir="false" afterPath="$PROJECT_DIR$/OrderDAO.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-release/.ninja_deps" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-release/.ninja_deps" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-release/.ninja_log" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-release/.ninja_log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-release/Food-Ordering-System.db" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-release/Food-Ordering-System.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-release/Food_Ordering_System.exe" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-release/Food_Ordering_System.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-release/Testing/Temporary/LastTest.log" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-release/Testing/Temporary/LastTest.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
-    </list>
+    <list default="true" id="e2c82dac-297f-409b-aa47-8f9712f8c12c" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -114,7 +100,7 @@
       <workItem from="1781166121044" duration="6556000" />
       <workItem from="1782810385560" duration="1261000" />
       <workItem from="1782889473463" duration="610000" />
-      <workItem from="1783147094401" duration="53550000" />
+      <workItem from="1783147094401" duration="54153000" />
     </task>
     <servers />
   </component>
