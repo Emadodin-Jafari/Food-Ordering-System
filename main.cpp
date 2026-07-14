@@ -270,7 +270,7 @@ int main() {
                 cout << "-------------------------------------------" << endl;
 
 
-                orderDao.checkAndAllocateMonthlyCoupons(currentCustomer->getCustomerID(), currentCustomer->getCustomerLevel());
+                orderDao.checkAndAllocateMonthlyCoupons(currentCustomer);
                 int coupons = orderDao.getActiveCouponsCount(currentCustomer->getCustomerID());
 
                 ///////////////////////////////////////Show Customer Information///////////////////////////////////////
@@ -282,28 +282,8 @@ int main() {
                 cout << "Customer Points : " << currentCustomer->getCustomerPoints() << endl;
                 cout << "Customer Coupons: " << coupons << " coupon(s)" << endl;
 
-                string currentLevel = currentCustomer->getCustomerLevel();
-                int currentPoints = currentCustomer->getCustomerPoints();
 
-
-                if (currentLevel == "Normal") {
-                    int nextLevelPoints = 100 - currentPoints;
-                    if (nextLevelPoints < 0) nextLevelPoints = 0;
-                    cout << ">> You need " << nextLevelPoints << " more points to upgrade to (Silver)! <<" << endl;
-                }
-                else if (currentLevel == "Silver") {
-                    int nextLevelPoints = 300 - currentPoints;
-                    if (nextLevelPoints < 0) nextLevelPoints = 0;
-                    cout << ">> You need " << nextLevelPoints << " more points to upgrade to (Gold)! <<" << endl;
-                }
-                else if (currentLevel == "Gold") {
-                    int nextLevelPoints = 600 - currentPoints;
-                    if (nextLevelPoints < 0) nextLevelPoints = 0;
-                    cout << ">> You need " << nextLevelPoints << " more points to upgrade to (VIP)! <<" << endl;
-                }
-                else if (currentLevel == "VIP") {
-                    cout << ">>You are at the highest level (VIP Member)! <<" << endl;
-                }
+                cout << ">> " << currentCustomer->getNextLevelRequirement() << " <<" << endl;
 
                 cout << "=========================================" << endl;
                 cout << "Press Enter.";
@@ -1330,20 +1310,23 @@ int main() {
                 else if(systemManagerChoice == 309){
                     int customerTargetId , newCustomerPoint;
                     cout << "Enter Customer ID : " << endl;
-
                     customerTargetId = getValidatedInt();
 
                     cout << "Enter customer new point : " << endl;
-
                     newCustomerPoint = getValidatedInt();
+
                     Customer* currentCust = customerDao.getCustomerById(customerTargetId);
 
-                    if (currentCust != nullptr && currentCust->getCustomerID() == customerTargetId) {
+                    if (currentCust != nullptr) {
+                        currentCust->setCustomerPoints(newCustomerPoint);
+
                         if (orderDao.adminUpdateCustomerPoints(currentCust, newCustomerPoint)) {
                             cout << "Changes successfully applied to the database." << endl;
+                            cout << "Customer updated to Level: " << currentCust->getCustomerLevel() << endl;
                         } else {
                             cout << "Error updating database." << endl;
                         }
+
                         delete currentCust;
                     } else {
                         cout << "Customer not found!" << endl;
@@ -1352,7 +1335,6 @@ int main() {
                     cout << "Press Enter." << endl;
                     cin.ignore();
                     cin.get();
-
                 }
 
                 else if(systemManagerChoice == 310){

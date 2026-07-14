@@ -28,6 +28,10 @@ public:
     void updateMembership();
     double applyDiscount(double price) const;
 
+    double getPointsMultiplier() const;
+    double calculateDeliveryFee(double totalPrice) const;
+    int getMonthlyCouponCount() const;
+    string getNextLevelRequirement() const;
 private:
     int customerID;
     string customerName;

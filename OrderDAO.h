@@ -29,7 +29,7 @@ public:
     void printLevelHistory(int customerId);
     void printCustomerCountPerLevel();
 
-    void checkAndAllocateMonthlyCoupons(int customerId, const string& level);
+    void checkAndAllocateMonthlyCoupons(Customer* customer);
     int getActiveCouponsCount(int customerId);
     void printAllCustomersWithDetails();
     int getCustomerCount();

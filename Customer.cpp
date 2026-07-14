@@ -104,3 +104,31 @@ double Customer::applyDiscount(double price) const {
     }
     return price;
 }
+
+double Customer::getPointsMultiplier() const {
+    if (memberLevel != nullptr) {
+        return memberLevel->getPointsMultiplier();
+    }
+    return 1.0;
+}
+
+double Customer::calculateDeliveryFee(double totalPrice) const {
+    if (memberLevel != nullptr) {
+        return memberLevel->calculateDeliveryFee(totalPrice);
+    }
+    return 100.0;
+}
+
+int Customer::getMonthlyCouponCount() const {
+    if (memberLevel != nullptr) {
+        return memberLevel->getMonthlyCouponCount();
+    }
+    return 0;
+}
+
+string Customer::getNextLevelRequirement() const {
+    if (memberLevel != nullptr) {
+        return memberLevel->getNextLevelRequirement(customerPoints);
+    }
+    return "";
+}

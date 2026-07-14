@@ -15,26 +15,10 @@ bool OrderDAO::addOrder(Order& order) {
 
     if (order.getCustomer() != nullptr) {
         Customer* customer = order.getCustomer();
-        double multiplier = 1.0;
         string levelNameBefore = customer->getCustomerLevel();
 
-        if (levelNameBefore == "VIP") {
-            multiplier = 2.0;
-            calculatedDeliveryFee = 0.0;
-        } else if (levelNameBefore == "Gold") {
-            multiplier = 1.5;
-            calculatedDeliveryFee = 50.0;
-        } else if (levelNameBefore == "Silver") {
-            multiplier = 1.2;
-            if (order.getTotalPrice() > 500.0) {
-                calculatedDeliveryFee = 75.0;
-            } else {
-                calculatedDeliveryFee = 100.0;
-            }
-        } else {
-            multiplier = 1.0;
-            calculatedDeliveryFee = 100.0;
-        }
+        double multiplier = customer->getPointsMultiplier();
+        calculatedDeliveryFee = customer->calculateDeliveryFee(order.getTotalPrice());
 
         double priceBeforeDiscount = 0.0;
         for (size_t i = 0; i < items.size(); ++i) {
@@ -658,7 +642,8 @@ void OrderDAO::printCustomerCountPerLevel() {
     sqlite3_finalize(stmt);
 }
 
-void OrderDAO::checkAndAllocateMonthlyCoupons(int customerId, const string& level) {
+void OrderDAO::checkAndAllocateMonthlyCoupons(Customer* customer) {
+    if (customer == nullptr) return;
     sqlite3* db = database.getConnection();
     if (!db) return;
 
@@ -679,7 +664,7 @@ void OrderDAO::checkAndAllocateMonthlyCoupons(int customerId, const string& leve
     bool alreadyAllocated = false;
 
     if (sqlite3_prepare_v2(db, checkSQL.c_str(), -1, &checkStmt, nullptr) == SQLITE_OK) {
-        sqlite3_bind_int(checkStmt, 1, customerId);
+        sqlite3_bind_int(checkStmt, 1, customer->getCustomerID());
         sqlite3_bind_text(checkStmt, 2, currentMonth.c_str(), -1, SQLITE_TRANSIENT);
         if (sqlite3_step(checkStmt) == SQLITE_ROW) {
             if (sqlite3_column_int(checkStmt, 0) > 0) {
@@ -691,14 +676,7 @@ void OrderDAO::checkAndAllocateMonthlyCoupons(int customerId, const string& leve
 
     if (alreadyAllocated) return;
 
-    int couponCount = 0;
-    if (level == "Silver") {
-        couponCount = 1;
-    } else if (level == "Gold") {
-        couponCount = 1;
-    } else if (level == "VIP") {
-        couponCount = 3;
-    }
+    int couponCount = customer->getMonthlyCouponCount();
 
     if (couponCount == 0) return;
 
@@ -707,7 +685,7 @@ void OrderDAO::checkAndAllocateMonthlyCoupons(int customerId, const string& leve
 
     if (sqlite3_prepare_v2(db, insertSQL.c_str(), -1, &insertStmt, nullptr) == SQLITE_OK) {
         for (int i = 0; i < couponCount; ++i) {
-            sqlite3_bind_int(insertStmt, 1, customerId);
+            sqlite3_bind_int(insertStmt, 1, customer->getCustomerID());
             sqlite3_bind_text(insertStmt, 2, currentMonth.c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_step(insertStmt);
             sqlite3_reset(insertStmt);
